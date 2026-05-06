@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  TextInput, 
-  TouchableOpacity, 
-  KeyboardAvoidingView, 
+import {
+  Keyboard,
+  KeyboardAvoidingView,
   Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
-  Keyboard
+  View
 } from 'react-native';
 // O Expo já inclui o pacote @expo/vector-icons por defeito
-import { MaterialIcons } from '@expo/vector-icons'; 
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
   // Variáveis de estado para guardar o que o utilizador escreve
@@ -42,7 +42,7 @@ export default function LoginScreen() {
 
           {/* Parte Inferior - O Contentor Branco com a Curva Superior */}
           <View style={styles.formContainer}>
-            <Text style={styles.welcomeText}>Bem-vindo de volta!</Text>
+            <Text style={styles.welcomeText}>Login</Text>
 
             {/* Campo de Entrada: Email */}
             <View style={styles.inputContainer}>
@@ -73,7 +73,7 @@ export default function LoginScreen() {
 
             {/* Link: Recuperar Senha */}
             <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={styles.forgotPasswordText}>Esqueceste a senha?</Text>
+              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
             {/* Botão Principal: Entrar */}
@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
     flex: 0.6, // Ocupa os restantes 60% do ecrã
     backgroundColor: '#DEF2F5',
     // Aqui criamos a famosa curva orgânica no topo do formulário
-    borderTopLeftRadius: 60,
-    borderTopRightRadius: 60,
+    borderTopLeftRadius: 100,
+    borderTopRightRadius: 0,
     paddingHorizontal: 40,
     paddingTop: 40,
     // Sombra para destacar o formulário do fundo azul
@@ -132,10 +132,10 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   welcomeText: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#2c3e50',
-    marginBottom: 30,
+    marginBottom: 50,
     textAlign: 'center',
   },
   inputContainer: {
@@ -156,8 +156,9 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
   },
   forgotPassword: {
-    alignSelf: 'flex-end', // Empurra o texto para a direita
+    //alignSelf: 'flex-end', // Empurra o texto para a direita
     marginBottom: 30,
+    marginTop: -10,
   },
   forgotPasswordText: {
     color: '#1a73e8',
