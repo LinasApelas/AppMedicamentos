@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
 import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View} from 'react-native';
 // O Expo já inclui o pacote @expo/vector-icons por defeito
 import { MaterialIcons } from '@expo/vector-icons';
@@ -9,10 +10,13 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
+  const router = useRouter(); // 2. Inicializar o router
   // Função chamada quando o utilizador clica em "ENTRAR"
   const handleLogin = () => {
     console.log('Tentativa de login com:', email, senha);
     // Mais tarde, aqui irás adicionar a lógica para comunicar com a tua API ou Base de Dados
+    // 3. Navegar para a tela estilobase
+    router.replace('/estilobase');
   };
 
   return (
