@@ -17,19 +17,19 @@ export default function Botao({ titulo, onPress }: BotaoProps) {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#1a73e8', // Cor principal do botão
+    backgroundColor: '#9DD7E2', // Cor principal do botão
     borderRadius: 30,
     height: 60,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
-    shadowColor: '#1a73e8',
+    shadowColor: '#121b28',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
   buttonText: {
-    color: '#FFF',
+    color: '#1B3B45',
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 1,
