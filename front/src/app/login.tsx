@@ -1,74 +1,68 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View} from 'react-native';
-// O Expo já inclui o pacote @expo/vector-icons por defeito
 import { MaterialIcons } from '@expo/vector-icons';
 import Button from '../components/Button';
 
 export default function Login() {
-  // Variáveis de estado para guardar o que o utilizador escreve
+  {/* Variáveis de estado para guardar o que o usuario escreve */}
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
-  const router = useRouter(); // 2. Inicializar o router
-  // Função chamada quando o utilizador clica em "ENTRAR"
-  const handleLogin = () => {
-    console.log('Tentativa de login com:', email, senha);
-    // Mais tarde, aqui irás adicionar a lógica para comunicar com a tua API ou Base de Dados
-    // 3. Navegar para a tela estilobase
-    router.replace('/estilobase');
-  };
+  const router = useRouter();
+  // Função chamada quando o usuario clica em "ENTRAR"
+  const handleLogin = () => { router.replace('/estilobase');};
 
   return (
-    // KeyboardAvoidingView impede que o teclado cubra os campos de texto
+    // Impede que o teclado cubra os campos de texto
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      {/* Esconde o teclado se o utilizador tocar fora dos campos */}
+      {/* Esconde o teclado ao tocar fora dos campos */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.innerContainer}>
           
-          {/* Parte Superior - Fundo Azul e Logótipo do AppMedicamentos */}
+          {/* Nome e Logo */}
           <View style={styles.header}>
-            <MaterialIcons name="local-pharmacy" size={90} color="#1a73e8" />
-            <Text style={styles.headerTitle}>AppMedicamentos</Text>
+            {/* Colocar Logo */}
+            <Text style={styles.headerTitle}>App</Text>
           </View>
 
           {/* Parte Inferior - O Contentor Branco com a Curva Superior */}
           <View style={styles.formContainer}>
-            <Text style={styles.welcomeText}>Login</Text>
+            <Text style={styles.TextoBoasVindas}>Login</Text>
 
-            {/* Campo de Entrada: Email */}
+            {/* Campo: Email */}
             <View style={styles.inputContainer}>
               <MaterialIcons name="email" size={24} color="#5d6d7e" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder="O teu e-mail"
+                placeholder="E-mail"
                 placeholderTextColor="#7f8c8d"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
-                autoCapitalize="none" // Evita que a primeira letra do email fique maiúscula
+                autoCapitalize="none"
               />
             </View>
 
-            {/* Campo de Entrada: Senha */}
+            {/* Campo: Senha */}
             <View style={styles.inputContainer}>
               <MaterialIcons name="lock" size={24} color="#5d6d7e" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder="A tua senha"
+                placeholder="Senha"
                 placeholderTextColor="#7f8c8d"
                 value={senha}
                 onChangeText={setSenha}
-                secureTextEntry // Esconde os caracteres da senha
+                secureTextEntry
               />
             </View>
 
             {/* Link: Recuperar Senha */}
-            <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+            <TouchableOpacity style={styles.EsqueceuSenha}>
+              <Text style={styles.EsqueceuSenhaLink}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
             {/* Botão Principal: Entrar */}
@@ -76,9 +70,9 @@ export default function Login() {
 
             {/* Secção: Criar Conta */}
             <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>Ainda não tens conta? </Text>
+              <Text style={styles.TextoCriaConta}>Ainda não tem conta? </Text>
               <TouchableOpacity>
-                <Text style={styles.registerLink}>Cria aqui</Text>
+                <Text style={styles.CriaContaLink}>Crie aqui</Text>
               </TouchableOpacity>
             </View>
 
@@ -89,17 +83,16 @@ export default function Login() {
   );
 }
 
-// Estilos detalhados da interface
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff', // Azul muito claro para o fundo superior
+    backgroundColor: '#ffffff',
   },
   innerContainer: {
     flex: 1,
   },
   header: {
-    flex: 0.4, // Ocupa 40% da altura do ecrã
+    flex: 0.4,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -110,21 +103,19 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   formContainer: {
-    flex: 0.6, // Ocupa os restantes 60% do ecrã
+    flex: 0.6,
     backgroundColor: '#DEF2F5',
-    // Aqui criamos a famosa curva orgânica no topo do formulário
     borderTopLeftRadius: 100,
     borderTopRightRadius: 0,
     paddingHorizontal: 40,
     paddingTop: 40,
-    // Sombra para destacar o formulário do fundo azul
     elevation: 10, 
     shadowColor: '#000', 
     shadowOffset: { width: 0, height: -5 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
   },
-  welcomeText: {
+  TextoBoasVindas: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#2c3e50',
@@ -134,7 +125,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#B2E3E8', // Azul mais escuro que o fundo para os inputs
+    backgroundColor: '#B2E3E8',
     borderRadius: 30,
     height: 60,
     paddingHorizontal: 20,
@@ -148,28 +139,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2c3e50',
   },
-  forgotPassword: {
-    //alignSelf: 'flex-end', // Empurra o texto para a direita
+  EsqueceuSenha: {
     marginBottom: 30,
     marginTop: -10,
   },
-  forgotPasswordText: {
+  EsqueceuSenhaLink: {
     color: '#1a73e8',
     fontSize: 14,
     fontWeight: '600',
-  },
-  button: {
-    backgroundColor: '#1a73e8', // Cor principal do botão
-    borderRadius: 30,
-    height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    // Efeito 3D / Sombra no botão
-    elevation: 5,
-    shadowColor: '#1a73e8',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
   },
   buttonText: {
     color: '#FFF',
@@ -182,11 +159,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 30,
   },
-  registerText: {
+  TextoCriaConta: {
     color: '#7f8c8d',
     fontSize: 15,
   },
-  registerLink: {
+  CriaContaLink: {
     color: '#1a73e8',
     fontSize: 15,
     fontWeight: 'bold',

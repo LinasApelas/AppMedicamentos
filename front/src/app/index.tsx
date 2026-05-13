@@ -1,40 +1,38 @@
 import { useRouter } from 'expo-router';
 import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons'; // Importação dos ícones
+import { MaterialIcons } from '@expo/vector-icons';
 import Button from '../components/Button';
 
 export default function App() {
   const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
-      {/* 2. CONTAINER DA IMAGEM NA PARTE SUPERIOR */}
+      {/* Imagem */}
       <View style={styles.topoContainer}>
         <Image 
-          // Substitua pelo caminho correto da sua imagem na pasta assets
-          source={require('../img/fundo.png')} 
+          source={require('../img/image.png')} 
           style={styles.imagem}
-          resizeMode="contain" // Mantém a proporção da imagem sem cortar
+          resizeMode="contain"
         />
       </View>
       <View style={styles.bottomEstilo}>
         
-        {/* Texto com fonte maior acima do botão */}
+        {/* Texto de Boas Vindas */}
         <Text style={styles.textoGrande}>Bem-vindo ao App</Text>
 
-        {/* 2. Usar o seu componente Botão */}
+        {/* 2. Botao para Termos */}
         <Button
           titulo="                   Começar                   " 
-          onPress={() => console.log('Clicou em começar!')} 
+          onPress={() => router.push('/termos')} 
         />
 
-        {/* Texto clicável com ícone de porta embaixo do botão */}
-        {/* 3. ADICIONAR A NAVEGAÇÃO NO ONPRESS */}
+        {/* Texto para a tela Login */}
         <TouchableOpacity 
           style={styles.linkContainer} 
           onPress={() => router.push('/login')} 
         >
           <MaterialIcons name="exit-to-app" size={24} color="#00C2FF" />
-          <Text style={styles.textoClicavel}>Entrar</Text>
+          <Text style={styles.Login}>Entrar</Text>
         </TouchableOpacity>
         
       </View>
@@ -84,7 +82,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,              // Espaço abaixo do botão
   },
-  textoClicavel: {
+  Login: {
     fontSize: 16,
     color: '#00C2FF',
     fontWeight: '600',
