@@ -11,7 +11,7 @@ export default function Login() {
 
   const router = useRouter();
   // Função chamada quando o usuario clica em "ENTRAR"
-  const handleLogin = () => { router.replace('/estilobase');};
+  const handleLogin = () => { router.replace('../estilobase');};
 
   return (
     // Impede que o teclado cubra os campos de texto

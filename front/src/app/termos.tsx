@@ -1,6 +1,7 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, View, Image, Text } from 'react-native'; 
 import Button from '../components/Button';
+import { router } from 'expo-router';
 
 export default function Termos() {
   return (
@@ -36,7 +37,7 @@ export default function Termos() {
         <View style={styles.Botao}>
           <Button 
             titulo="    Aceitar e Continuar    " 
-            onPress={() => console.log('Termos aceitos!')} 
+            onPress={() => router.push('../Home')}
           />
         </View>
 
