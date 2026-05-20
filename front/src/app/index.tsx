@@ -45,7 +45,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  // 3. ESTILOS DA PARTE SUPERIOR (IMAGEM)
   topoContainer: {
     position: 'absolute', // Coloca a imagem "flutuando" no espaço vazio superior
     top: -100,              // Distância do topo da tela
