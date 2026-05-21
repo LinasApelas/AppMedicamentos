@@ -1,11 +1,11 @@
 import React from 'react';
 import { TextInput, TextInputProps, StyleSheet, View, Text } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 
 // Adicionamos a propriedade iconName para receber o nome do ícone
 interface InputProps extends TextInputProps {
   label?: string;
-  iconName?: keyof typeof MaterialIcons.glyphMap; 
+  iconName?: keyof typeof Feather.glyphMap; 
 }
 
 export default function Input({ label, iconName, ...rest }: InputProps) {
@@ -16,7 +16,7 @@ export default function Input({ label, iconName, ...rest }: InputProps) {
       <View style={styles.inputContainer}>
         {/* Se for passado um ícone, ele renderiza aqui */}
         {iconName && (
-          <MaterialIcons name={iconName} size={24} color="#5d6d7e" style={styles.icon} />
+          <Feather name={iconName} size={24} color="#5d6d7e" style={styles.icon} />
         )}
         
         <TextInput
@@ -35,19 +35,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    color: '#1B3B45', 
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    marginLeft: 5,
+    color: '#000000', 
+    fontSize: 18,
+    fontWeight: 'normal',
+    marginBottom: 6,
+    marginLeft: 0,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#B2E3E8', // Cor de fundo do seu design original
-    borderRadius: 30,
+    borderRadius: 10,
     height: 60,
     paddingHorizontal: 20,
+    borderWidth: 1.5,
   },
   icon: {
     marginRight: 10,
@@ -55,6 +55,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#000000',
   },
 });

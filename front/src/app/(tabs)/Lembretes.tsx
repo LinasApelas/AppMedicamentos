@@ -8,6 +8,9 @@ export default function Lembretes() {
         <View style={styles.container}>
             <Text style={styles.fonte}> HOME {'\n'} (Botão de Adicionar Lembretes + Lembretes Salvos) </Text>
 
+{/* Botão de adicionar usando touchableOpacity,
+comentei porque se precisar de algo do tipo já tá pronto e o botão agora fica no meio da navbar.
+
                     <TouchableOpacity
                     style ={styles.adicionar}
                     onPress={() => router.push('/adicionar')} 
@@ -15,6 +18,7 @@ export default function Lembretes() {
                     <MaterialIcons name="add-circle-outline" size={24} color="#000000" />
                     <Text style={styles.fonte}>Adicionar</Text>
                     </TouchableOpacity>
+*/}
 
         </View>
         

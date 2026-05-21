@@ -11,8 +11,8 @@ export default function Layout() {
             />
 
             <Tabs.Screen
-            name='Mapa'
-            options={{ title: 'Mapa' }}
+            name='Adicionar'
+            options={{ title: 'Adicionar' }}
             />
 
             <Tabs.Screen
