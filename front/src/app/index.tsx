@@ -46,15 +46,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   topoContainer: {
-    position: 'absolute', // Coloca a imagem "flutuando" no espaço vazio superior
-    top: -100,              // Distância do topo da tela
+    position: 'absolute',
+    top: -100,
     width: '100%',
-    alignItems: 'center', // Centraliza a imagem horizontalmente
-    zIndex: 0,            // Garante que a imagem fique visível
+    alignItems: 'center',
+    zIndex: 0,
   },
   imagem: {
-    width: 500,           // Largura da imagem (ajuste como preferir)
-    height: 500,          // Altura da imagem (ajuste como preferir)
+    width: 500,   
+    height: 500,
   },
   bottomEstilo: { 
     flex: 1,
@@ -70,21 +70,21 @@ const styles = StyleSheet.create({
     paddingBottom: 80,          
   },
   textoGrande: {
-    fontSize: 28,               // Fonte maior conforme solicitado
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#2c3e50',
-    marginBottom: 30,           // Espaço entre este texto e o botão
+    marginBottom: 30,
     textAlign: 'center',
   },
   linkContainer: {
-    flexDirection: 'row',       // Coloca o ícone e o texto lado a lado
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,              // Espaço abaixo do botão
+    marginTop: 20,
   },
   Login: {
     fontSize: 16,
     color: '#00C2FF',
     fontWeight: '600',
-    marginLeft: 8,              // Espaço entre o ícone e o texto
+    marginLeft: 8,
   },
 });

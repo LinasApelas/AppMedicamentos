@@ -2,7 +2,6 @@ import React from 'react';
 import { TextInput, TextInputProps, StyleSheet, View, Text } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 
-// Adicionamos a propriedade iconName para receber o nome do ícone
 interface InputProps extends TextInputProps {
   label?: string;
   iconName?: keyof typeof Feather.glyphMap; 
@@ -44,6 +43,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#ffffff',
     borderRadius: 10,
     height: 60,
     paddingHorizontal: 20,

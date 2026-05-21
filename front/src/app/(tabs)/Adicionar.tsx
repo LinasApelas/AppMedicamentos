@@ -1,6 +1,7 @@
 import { StyleSheet, View, Text} from 'react-native';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function Adicionar() {
     return(
@@ -10,22 +11,22 @@ export default function Adicionar() {
             <View style={styles.input}>
 
                 <Input
-                label='Nome da Medicação:'
-                iconName='edit-2'
+                iconName="edit-2" 
+                placeholder="Nome da Medicação:"
                 />
 
                 <Input
-                label='Intervalo de Tempo:'
+                placeholder="Intervalo de Tempo:"
                 iconName='clock'
                 />
 
                 <Input
-                label='Frequência:'
+                placeholder="Frequência:"
                 iconName='calendar'
                 />
 
                 <Input
-                label='Horário da Próxima Dose:'
+                placeholder="Horário da Próxima Dose:"
                 iconName='info'
                 />
 

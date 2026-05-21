@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View} from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View} from 'react-native';
 import Button from '../components/Button';
+import Input from '../components/Input';
 
 export default function Login() {
   {/* Variáveis de estado para guardar o que o usuario escreve */}
@@ -11,7 +11,7 @@ export default function Login() {
 
   const router = useRouter();
   // Função chamada quando o usuario clica em "ENTRAR"
-  const handleLogin = () => { router.replace('../estilobase');};
+  const handleLogin = () => { router.replace('../(tabs)/Lembretes');};
 
   return (
     // Impede que o teclado cubra os campos de texto
@@ -26,39 +26,30 @@ export default function Login() {
           {/* Nome e Logo */}
           <View style={styles.header}>
             {/* Colocar Logo */}
-            <Text style={styles.headerTitle}></Text>
           </View>
 
           {/* Parte Inferior - O Contentor Branco com a Curva Superior */}
           <View style={styles.formContainer}>
             <Text style={styles.TextoBoasVindas}>Login</Text>
 
-            {/* Campo: Email */}
-            <View style={styles.inputContainer}>
-              <MaterialIcons name="email" size={24} color="#5d6d7e" style={styles.inputIcon} />
-              <TextInput 
-                style={styles.input}
-                placeholder="E-mail"
-                placeholderTextColor="#7f8c8d"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
+           {/* Input: Email */}
+            <Input 
+              iconName="mail" 
+              placeholder="E-mail"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
-            {/* Campo: Senha */}
-            <View style={styles.inputContainer}>
-              <MaterialIcons name="lock" size={24} color="#5d6d7e" style={styles.inputIcon} />
-              <TextInput 
-                style={styles.input}
-                placeholder="Senha"
-                placeholderTextColor="#7f8c8d"
-                value={senha}
-                onChangeText={setSenha}
-                secureTextEntry
-              />
-            </View>
+            {/* Input: Senha */}
+            <Input 
+              iconName="lock"
+              placeholder="Senha"
+              value={senha}
+              onChangeText={setSenha}
+              secureTextEntry
+            />
 
             {/* Link: Recuperar Senha */}
             <TouchableOpacity style={styles.EsqueceuSenha}>
@@ -68,7 +59,7 @@ export default function Login() {
             {/* Botão Principal: Entrar */}
             <Button titulo="ENTRAR" onPress={handleLogin} />
 
-            {/* Secção: Criar Conta */}
+            {/* Link: Criar Conta */}
             <View style={styles.registerContainer}>
               <Text style={styles.TextoCriaConta}>Ainda não tem conta? </Text>
               <TouchableOpacity>
@@ -122,24 +113,7 @@ const styles = StyleSheet.create({
     marginBottom: 50,
     textAlign: 'center',
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#B2E3E8',
-    borderRadius: 30,
-    height: 60,
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#2c3e50',
-  },
-  EsqueceuSenha: {
+    EsqueceuSenha: {
     marginBottom: 30,
     marginTop: -10,
   },
@@ -152,7 +126,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
-    letterSpacing: 1, // Espaçamento entre as letras para ficar mais elegante
+    letterSpacing: 1,
   },
   registerContainer: {
     flexDirection: 'row',
