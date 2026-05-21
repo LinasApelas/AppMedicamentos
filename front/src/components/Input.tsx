@@ -2,7 +2,6 @@ import React from 'react';
 import { TextInput, TextInputProps, StyleSheet, View, Text } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-// Adicionamos a propriedade iconName para receber o nome do ícone
 interface InputProps extends TextInputProps {
   label?: string;
   iconName?: keyof typeof MaterialIcons.glyphMap; 
@@ -44,7 +43,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#B2E3E8', // Cor de fundo do seu design original
+    backgroundColor: '#B2E3E8',
     borderRadius: 30,
     height: 60,
     paddingHorizontal: 20,

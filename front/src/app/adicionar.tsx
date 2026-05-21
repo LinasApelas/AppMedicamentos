@@ -1,5 +1,4 @@
 import { StyleSheet, View, Text} from 'react-native';
-import { router } from 'expo-router';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { MaterialIcons } from '@expo/vector-icons';
