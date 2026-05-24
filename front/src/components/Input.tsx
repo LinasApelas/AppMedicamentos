@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextInput, TextInputProps, StyleSheet, View, Text } from 'react-native';
+import { TextInput, TextInputProps, StyleSheet, View, Text, } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 
 interface InputProps extends TextInputProps {

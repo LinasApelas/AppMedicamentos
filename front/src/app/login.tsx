@@ -52,7 +52,7 @@ export default function Login() {
             />
 
             {/* Link: Recuperar Senha */}
-            <TouchableOpacity style={styles.EsqueceuSenha}>
+            <TouchableOpacity style={styles.EsqueceuSenha} onPress={() => router.push('/RecuperarSenhaEmail')}>
               <Text style={styles.EsqueceuSenhaLink}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
@@ -62,7 +62,7 @@ export default function Login() {
             {/* Link: Criar Conta */}
             <View style={styles.registerContainer}>
               <Text style={styles.TextoCriaConta}>Ainda não tem conta? </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/CriarConta')}>
                 <Text style={styles.CriaContaLink}>Crie aqui</Text>
               </TouchableOpacity>
             </View>
