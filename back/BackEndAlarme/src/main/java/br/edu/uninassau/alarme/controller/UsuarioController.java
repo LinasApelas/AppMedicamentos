@@ -10,6 +10,7 @@ import br.edu.uninassau.alarme.repository.UsuarioRepository;
 
 @RestController
 @RequestMapping("/usuarios")
+@CrossOrigin(origins = "*") // Permite requisições de diferentes origens (útil para desenvolvimento)
 public class UsuarioController {
 
     @Autowired
@@ -19,6 +20,14 @@ public class UsuarioController {
     public ResponseEntity<String> criarUsuario(@RequestBody Usuario usuario) {
         usuarioRepository.save(usuario);
         return ResponseEntity.status(201).body("Usuário criado com sucesso no banco de dados!");
+    }
+
+    // NOVO ENDPOINT DE LOGIN
+    @PostMapping("/login")
+    public ResponseEntity<Usuario> fazerLogin(@RequestBody Usuario dadosLogin) {
+        return usuarioRepository.findByEmailAndSenha(dadosLogin.getEmail(), dadosLogin.getSenha())
+                .map(usuario -> ResponseEntity.ok(usuario))
+                .orElse(ResponseEntity.status(401).body(null));
     }
 
     @GetMapping

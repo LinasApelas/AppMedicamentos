@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View} from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Alert } from 'react-native';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
+// ATENÇÃO: Substitua pelo IP da sua máquina
+const API_URL = 'http://192.168.1.14:8080/usuarios';
+
 export default function CriarConta() {
-  {/* Variáveis de estado para guardar o que o usuario escreve */}
   const [nomeUsuario, setNomeUsuario] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -13,31 +15,58 @@ export default function CriarConta() {
 
   const router = useRouter();
   
-  // Função chamada quando o usuario clica em "CADASTRAR"
-  const handleCadastro = () => { 
-    router.replace('../(tabs)/Lembretes');
+  const handleCadastro = async () => { 
+    if (!nomeUsuario || !email || !senha || !confirmarSenha) {
+      Alert.alert('Atenção', 'Preencha todos os campos!');
+      return;
+    }
+
+    if (senha !== confirmarSenha) {
+      Alert.alert('Erro', 'As senhas não coincidem!');
+      return;
+    }
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nome: nomeUsuario,
+          email: email,
+          senha: senha,
+          fusoHorario: "America/Sao_Paulo"
+        }),
+      });
+
+      if (response.status === 201) {
+        Alert.alert('Sucesso', 'Conta criada com sucesso!');
+        router.replace('/login');
+      } else {
+        Alert.alert('Erro', 'Não foi possível criar a conta.');
+      }
+    } catch (error) {
+      console.error('Erro na requisição:', error);
+      Alert.alert('Erro', 'Falha na conexão com o servidor.');
+    }
   };
 
   return (
-    // Impede que o teclado cubra os campos de texto
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      {/* Esconde o teclado ao tocar fora dos campos */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.innerContainer}>
           
-          {/* Nome e Logo */}
           <View style={styles.header}>
             {/* Colocar Logo */}
           </View>
 
-          {/* Parte Inferior - O Contentor Branco com a Curva Superior */}
           <View style={styles.formContainer}>
             <Text style={styles.TextoBoasVindas}>Criar Conta</Text>
 
-            {/* Input: Nome de Usuário */}
             <Input 
               iconName="user"
               placeholder="Nome de usuário"
@@ -46,7 +75,6 @@ export default function CriarConta() {
               autoCapitalize="words"
             />
 
-            {/* Input: Email */}
             <Input 
               iconName="mail"
               placeholder="E-mail"
@@ -56,7 +84,6 @@ export default function CriarConta() {
               autoCapitalize="none"
             />
 
-            {/* Input: Senha */}
             <Input 
               iconName="lock"
               placeholder="Senha"
@@ -65,7 +92,6 @@ export default function CriarConta() {
               secureTextEntry
             />
 
-            {/* Input: Confirmar Senha */}
             <Input 
               iconName="lock"
               placeholder="Confirmar senha"
@@ -74,12 +100,10 @@ export default function CriarConta() {
               secureTextEntry
             />
 
-            {/* Botão Principal: Cadastrar */}
             <View style={{ marginTop: 10 }}>
               <Button titulo="CADASTRAR" onPress={handleCadastro} />
             </View>
 
-            {/* Link: Voltar para Login */}
             <View style={styles.registerContainer}>
               <Text style={styles.TextoCriaConta}>Já tem uma conta? </Text>
               <TouchableOpacity onPress={() => router.push('/login')}>
@@ -103,7 +127,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flex: 0.2, // Reduzido um pouco para dar mais espaço para os 4 inputs
+    flex: 0.2, 
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -114,12 +138,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   formContainer: {
-    flex: 0.8, // Aumentado para acomodar os novos campos
+    flex: 0.8, 
     backgroundColor: '#DEF2F5',
     borderTopLeftRadius: 100,
     borderTopRightRadius: 100,
     paddingHorizontal: 40,
-    paddingTop: 40, // Corrigido de 400 para 40 para não quebrar a tela
+    paddingTop: 40, 
     elevation: 10, 
     shadowColor: '#000', 
     shadowOffset: { width: 0, height: -5 },
@@ -130,7 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#2c3e50',
-    marginBottom: 30, // Diminuído um pouco para caber melhor os inputs
+    marginBottom: 30, 
     textAlign: 'center',
   },
   buttonText: {

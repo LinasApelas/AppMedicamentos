@@ -1,38 +1,66 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View} from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Alert } from 'react-native';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
+// ATENÇÃO: Substitua pelo IP da sua máquina
+const API_URL = 'http://192.168.1.14:8080/usuarios';
+
 export default function Login() {
-  {/* Variáveis de estado para guardar o que o usuario escreve */}
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
   const router = useRouter();
-  // Função chamada quando o usuario clica em "ENTRAR"
-  const handleLogin = () => { router.replace('../(tabs)/Lembretes');};
+  
+  const handleLogin = async () => { 
+    if (!email || !senha) {
+      Alert.alert('Atenção', 'Preencha o e-mail e a senha!');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          senha: senha,
+        }),
+      });
+
+      if (response.ok) {
+        const usuarioLogado = await response.json();
+        Alert.alert('Sucesso', `Bem-vindo, ${usuarioLogado.nome}!`);
+        router.replace('../(tabs)/Lembretes');
+      } else if (response.status === 401) {
+        Alert.alert('Erro', 'E-mail ou senha incorretos.');
+      } else {
+        Alert.alert('Erro', 'Ocorreu um erro ao fazer login.');
+      }
+    } catch (error) {
+      console.error('Erro na requisição:', error);
+      Alert.alert('Erro', 'Falha na conexão com o servidor. Verifique seu IP.');
+    }
+  };
 
   return (
-    // Impede que o teclado cubra os campos de texto
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      {/* Esconde o teclado ao tocar fora dos campos */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.innerContainer}>
           
-          {/* Nome e Logo */}
           <View style={styles.header}>
             {/* Colocar Logo */}
           </View>
 
-          {/* Parte Inferior - O Contentor Branco com a Curva Superior */}
           <View style={styles.formContainer}>
             <Text style={styles.TextoBoasVindas}>Login</Text>
 
-           {/* Input: Email */}
             <Input 
               iconName="mail" 
               placeholder="E-mail"
@@ -42,7 +70,6 @@ export default function Login() {
               autoCapitalize="none"
             />
 
-            {/* Input: Senha */}
             <Input 
               iconName="lock"
               placeholder="Senha"
@@ -51,15 +78,12 @@ export default function Login() {
               secureTextEntry
             />
 
-            {/* Link: Recuperar Senha */}
             <TouchableOpacity style={styles.EsqueceuSenha} onPress={() => router.push('/RecuperarSenhaEmail')}>
               <Text style={styles.EsqueceuSenhaLink}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
-            {/* Botão Principal: Entrar */}
             <Button titulo="ENTRAR" onPress={handleLogin} />
 
-            {/* Link: Criar Conta */}
             <View style={styles.registerContainer}>
               <Text style={styles.TextoCriaConta}>Ainda não tem conta? </Text>
               <TouchableOpacity onPress={() => router.push('/CriarConta')}>
@@ -113,7 +137,7 @@ const styles = StyleSheet.create({
     marginBottom: 50,
     textAlign: 'center',
   },
-    EsqueceuSenha: {
+  EsqueceuSenha: {
     marginBottom: 30,
     marginTop: -10,
   },
