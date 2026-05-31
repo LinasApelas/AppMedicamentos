@@ -20,7 +20,7 @@ export default function Input({ label, iconName, ...rest }: InputProps) {
         
         <TextInput
           style={styles.input}
-          placeholderTextColor="#7f8c8d"
+          placeholderTextColor="#1B3B45"
           {...rest}
         />
       </View>
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    color: '#000000', 
+    color: '#1B3B45', 
     fontSize: 18,
     fontWeight: 'normal',
     marginBottom: 6,
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#E2F1F8',
     borderRadius: 10,
     height: 60,
     paddingHorizontal: 20,
@@ -55,6 +55,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#000000',
+    color: '#1B3B45',
   },
 });
