@@ -115,8 +115,10 @@ export default function Lembretes() {
       </ScrollView>
 
     </View>
+
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -228,4 +230,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#fff',
   },
+
+  container2: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+},
+
+  fonte: {
+    fontSize: 18,
+    marginLeft: 4,
+    color: '#808080',
+    fontWeight: 'normal',
+},
+
 });

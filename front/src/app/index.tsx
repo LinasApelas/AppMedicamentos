@@ -21,10 +21,12 @@ export default function App() {
         <Text style={styles.textoGrande}>Bem-vindo ao SyncMed!</Text>
 
         {/* 2. Botao para Termos */}
+        <View style={styles.botao}>
         <Button
-          titulo="                   Começar                   " 
+          titulo="Começar"
           onPress={() => router.push('/termos')} 
         />
+        </View>
 
         {/* Texto para a tela Login */}
         <TouchableOpacity 
@@ -87,4 +89,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  botao: {
+    width: '50%'
+  },
+
 });

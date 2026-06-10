@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Button from '../../components/Button';
 import { 
   View, 
   Text, 
@@ -29,10 +30,6 @@ export default function Perfil() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        {/* Cabeçalho */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Perfil</Text>
-        </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
@@ -83,9 +80,6 @@ export default function Perfil() {
           </View>
 
           {/* Botão Salvar */}
-          <TouchableOpacity style={styles.buttonSalvar} onPress={handleSalvar}>
-            <Text style={styles.buttonSalvarText}>Salvar</Text>
-          </TouchableOpacity>
 
         </ScrollView>
       </KeyboardAvoidingView>

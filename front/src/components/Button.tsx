@@ -22,16 +22,10 @@ const styles = StyleSheet.create({
     height: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#121b28',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    borderWidth: 0.5,
   },
   buttonText: {
     color: '#000000',
     fontSize: 18,
-    fontWeight: 'bold',
-    letterSpacing: 1,
   },
 });

@@ -1,13 +1,18 @@
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons'; // 1. Importando os ícones
+import { StyleSheet, Text, TouchableOpacity, View, Alert,} from 'react-native';
+
 
 export default function Layout() {
     return (
-        <Tabs 
-            screenOptions={{ 
+
+        <Tabs
+            screenOptions={{
                 tabBarActiveTintColor: '#1a73e8', // Cor do ícone e texto quando a aba está selecionada
-                tabBarInactiveTintColor: '#7f8c8d', // Cor quando a aba não está selecionada
-                headerShown: false, // Opcional: esconde o cabeçalho padrão superior, caso você já tenha feito o seu na tela
+                tabBarStyle: {height: 70 , paddingBottom: 10},
+                tabBarIconStyle: {flex: 1,justifyContent: 'center',alignItems: 'center',},
+                tabBarInactiveTintColor: '#808080', // Cor quando a aba não está selecionada
+                headerShown: true, // Opcional: esconde o cabeçalho padrão superior, caso você já tenha feito o seu na tela
             }}
         >
 
@@ -17,7 +22,7 @@ export default function Layout() {
                     title: 'Lembretes',
                     // 2. Adicionando o ícone
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialIcons name="event-note" size={size} color={color} />
+                        <MaterialIcons name="home" size={size} color={color} />
                     )
                 }}
             />
@@ -45,3 +50,18 @@ export default function Layout() {
         </Tabs>
     )
 }
+
+const styles = StyleSheet.create({
+
+container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    paddingTop: 20,
+},
+
+navBar: {
+    height: 60,
+},
+
+})

@@ -36,7 +36,7 @@ export default function Termos() {
         {/* Botao para aceitar os termos */}
         <View style={styles.Botao}>
           <Button 
-            titulo="    Aceitar e Continuar    " 
+            titulo="Aceitar e Continuar" 
             onPress={() => router.push('../Lembretes')}
           />
         </View>
@@ -93,9 +93,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   Botao: {
-    width: '100%',
-    alignItems: 'center',
+    width: '50%',
     marginBottom: 50, 
-    zIndex: 3,        
   },
 });
