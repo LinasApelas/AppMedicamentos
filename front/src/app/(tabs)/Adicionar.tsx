@@ -1,138 +1,108 @@
-import { StyleSheet, Text, TouchableOpacity, View, Alert,} from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+// --- Certifique-se de importar o contexto do SQLite ---
+import { useSQLiteContext } from 'expo-sqlite'; 
 import Button from '../../components/Button';
 import Input from '../../components/Input';
-import { useState } from 'react';
 
 export default function Adicionar() {
-    const [ParaOutraPessoa, setParaOutraPessoa] = useState(false);
-    const [nomePessoa, setNomePessoa] = useState('');
-    const [nomeMedicação, setMedicação] = useState('');
-    const [proximaDose, setProximaDose] = useState('');
+    const router = useRouter();
+    // --- Conecta com o banco de dados global ---
+    const db = useSQLiteContext(); 
+
+    const [nomeMedicacao, setNomeMedicacao] = useState('');
     const [intervalo, setIntervalo] = useState('');
     const [frequencia, setFrequencia] = useState('');
-    
-        return(
-            <View style={styles.container}>
+    const [proximaDose, setProximaDose] = useState('');
 
-                <View style={styles.containerDeTroca}>
-                    <TouchableOpacity
-                    style={[ styles.botaoDeTroca, !ParaOutraPessoa ? styles.botaoAtivo : styles.botaoDesligado ]}
-                    onPress={() => setParaOutraPessoa(false)}>
-                    <Text style={!ParaOutraPessoa ? styles.textoAtivo : styles.textoDesligado}> Para Mim </Text>
-                    </TouchableOpacity>
+    const handleSalvar = async () => {
+        if (!nomeMedicacao.trim()) {
+            Alert.alert("Atenção", "Por favor, digite o nome do medicamento.");
+            return;
+        }
 
-                    <TouchableOpacity
-                    style={[ styles.botaoDeTroca, ParaOutraPessoa ? styles.botaoAtivo : styles.botaoDesligado ]}
-                    onPress={() => setParaOutraPessoa(true)}>
-                    <Text style={ParaOutraPessoa ? styles.textoAtivo : styles.textoDesligado}> Outra Pessoa </Text>
-                    </TouchableOpacity>
+        // --- COMEÇA A LÓGICA DE SALVAMENTO REAL NO BANCO DE DADOS ---
+        try {
+            // Gera um ID único
+            const idUnico = Date.now().toString();
+
+            // Executa o comando SQL para inserir o registro de forma segura
+            await db.runAsync(
+                `INSERT INTO lembretes (id, nome, intervalo, frequencia, dose) VALUES (?, ?, ?, ?, ?);`,
+                [idUnico, nomeMedicacao, intervalo, frequencia, proximaDose]
+            );
+
+            // --- ALTERAÇÃO AQUI: Removemos o Alert e fazemos direto ---
+
+            // 1. Limpa os campos após salvar
+            setNomeMedicacao('');
+            setIntervalo('');
+            setFrequencia('');
+            setProximaDose('');
+
+            // 2. Navega IMEDIATAMENTE para a tela de Lembretes
+            // Usamos replace para garantir que a tela de Lembretes seja recarregada e mostre o novo item
+            router.replace('/Lembretes'); 
+
+        } catch (error) {
+            console.error("Erro ao salvar no SQLite:", error);
+            // Mantemos o alerta apenas em caso de erro real
+            Alert.alert("Erro", "Não foi possível salvar o medicamento. Tente novamente.");
+        }
+        // --- FIM DA LÓGICA DE SALVAMENTO ---
+    };
+
+    return (
+        <KeyboardAvoidingView 
+            style={styles.container} 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.inputContainer}>
+                    <Input
+                        iconName="edit-2" 
+                        placeholder="Nome da Medicação:"
+                        value={nomeMedicacao}
+                        onChangeText={setNomeMedicacao}
+                    />
+
+                    <Input
+                        placeholder="Intervalo de Tempo:"
+                        iconName='clock'
+                        value={intervalo}
+                        onChangeText={setIntervalo}
+                    />
+
+                    <Input
+                        placeholder="Frequência:"
+                        iconName='calendar'
+                        value={frequencia}
+                        onChangeText={setFrequencia}
+                    />
+
+                    <Input
+                        placeholder="Horário da Próxima Dose:"
+                        iconName='info'
+                        value={proximaDose}
+                        onChangeText={setProximaDose}
+                    />
                 </View>
+            </ScrollView>
 
-    {ParaOutraPessoa && (
-        <View style={styles.input}>
-            <Input
-                iconName="user" 
-                placeholder="Nome da Outra Pessoa..." //input simples q captura o nome do outro paciente quando for o caso
-                value={nomePessoa}
-                onChangeText={setNomePessoa}
-            />
-        </View>        
-    )}
-
-        <View style={styles.input}>
-            <Input
-                iconName="edit-2" 
-                placeholder="Nome da(s) Medicação(ões)..." //input simples q captura o nome da medicação
-                value={nomeMedicação}
-                onChangeText={setMedicação}
-            />
-
-            <Input
-                placeholder="Horário da Primeira/Próxima Dose..." //horário que a primeira ou próxima dose será tomada
-                iconName='info'
-                value={proximaDose}
-                onChangeText={setProximaDose}
-            />
-
-             <Input
-                placeholder="Intervalo de Tempo (ex: de 8 em 8 horas)..." //de quantas em quantas horas será tomada a medicação
-                iconName='clock'
-                value={intervalo}
-                onChangeText={setIntervalo}
-            />
-
-            <Input
-                placeholder="Frequência... (ex: quantidade de dias)" //quantidade de dias que a medicação será tomada
-                iconName='calendar'
-                value={frequencia}
-                onChangeText={setFrequencia}
-            />
-        </View>
-
-            <View style={styles.botao}>
+             <View style={styles.botao}>
                 <Button 
                     titulo="Salvar"
-                    onPress={() => Alert.alert('teste!')} 
+                    onPress={handleSalvar} 
                 />
             </View>
-        </View>
-  );
+        </KeyboardAvoidingView>
+    );    
 }
 
-
 const styles = StyleSheet.create({
-
-container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    paddingTop: 20,
-},
-
-botao: {
-    position: 'absolute',
-    bottom: 20,
-    width: '95%', 
-},
-
-input: {
-    width: '95%',
-},
-
-containerDeTroca: {
-    flexDirection: 'row',
-    borderWidth: 0.5,
-    borderColor: '#000000',
-    borderRadius: 30,
-    marginBottom: 20,
-    height: 60,
-    width: '95%',
-    overflow: 'hidden',
-},
-
-botaoDeTroca: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-},
-
-botaoAtivo: {
-    backgroundColor: '#99D9EA',
-},
-
-botaoDesligado: {
-
-},
-
-textoAtivo: {
-    color: '#000000',
-    fontWeight: 'normal',
-    fontSize: 18,
-},
-
-textoDesligado: {
-    color: '#808080',
-    fontSize: 18,
-},
-  
-})
+    container: { flex: 1, backgroundColor: '#ffffff' },
+    scrollContainer: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 },
+    inputContainer: { width: '95%' },
+    botao: { position: 'absolute', bottom: 10, width: '95%', alignSelf: 'center' }
+});
