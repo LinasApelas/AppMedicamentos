@@ -1,8 +1,11 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Stack } from 'expo-router'; // <-- Adicionamos o Stack aqui na importação
+import { LogBox } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 // 1. Importando o SQLiteProvider
 import { SQLiteProvider } from 'expo-sqlite'; 
+
+LogBox.ignoreLogs(['expo-notifications: Android Push notifications']);
 
 // 2. Função para criar a tabela na primeira vez que o app abrir
 async function inicializarBanco(db: any) {
@@ -27,13 +30,17 @@ export default function Layout() {
     return (
         // 3. Envolvendo suas Tabs com o provedor do banco de dados
         <SQLiteProvider databaseName="medicamentos.db" onInit={inicializarBanco}>
+            
+            {/* --- ESTA É A LINHA MÁGICA QUE ESCONDE O "(tabs)" DO TOPO --- */}
+            <Stack.Screen options={{ headerShown: false }} />
+
             <Tabs
                 screenOptions={{
                     tabBarActiveTintColor: '#1a73e8', // Cor do ícone e texto quando a aba está selecionada
                     tabBarStyle: {height: 100 , paddingBottom: 40 , paddingTop: 10}, // Aumenta a altura da barra de navegação
                     tabBarIconStyle: {flex: 1,justifyContent: 'center',alignItems: 'center',},
                     tabBarInactiveTintColor: '#808080', // Cor quando a aba não está selecionada
-                    headerShown: true, // Opcional: esconde o cabeçalho padrão superior
+                    headerShown: true, // Mantemos como true para manter o título limpo das abas (Lembretes, Perfil, etc)
                 }}
             >
                 <Tabs.Screen
