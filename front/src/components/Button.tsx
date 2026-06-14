@@ -5,19 +5,20 @@ import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 interface BotaoProps {
   titulo: string;
   onPress: () => void;
+  corFundo?: string;
 }
 
-export default function Botao({ titulo, onPress }: BotaoProps) {
+export default function Botao({ titulo, onPress , corFundo }: BotaoProps) {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text style={styles.buttonText}>{titulo}</Text>
+    <TouchableOpacity style={[styles.button , { backgroundColor: corFundo || '#9DD7E2' }]}
+    onPress={onPress}>
+    <Text style={styles.buttonText}>{titulo}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#9DD7E2', // Cor principal do botão
     borderRadius: 30,
     height: 60,
     justifyContent: 'center',
