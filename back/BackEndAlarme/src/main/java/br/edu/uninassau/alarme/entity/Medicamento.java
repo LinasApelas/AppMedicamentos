@@ -1,6 +1,8 @@
 package br.edu.uninassau.alarme.entity;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "medicamento")
@@ -17,6 +19,9 @@ public class Medicamento {
     private String unidadeMedida;
 
     private String descricao;
+
+    @OneToMany(mappedBy = "medicamento", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Tratamento> tratamentos = new ArrayList<>();
 
     public Medicamento() {}
 

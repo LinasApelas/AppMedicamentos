@@ -3,9 +3,7 @@ import { useRouter } from 'expo-router';
 import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Alert } from 'react-native';
 import Button from '../components/Button';
 import Input from '../components/Input';
-
-// ATENÇÃO: Substitua pelo IP da sua máquina
-const API_URL = 'http://192.168.1.14:8080/usuarios';
+import { apiService } from '../services/api';
 
 export default function CriarConta() {
   const [nomeUsuario, setNomeUsuario] = useState('');
@@ -27,28 +25,19 @@ export default function CriarConta() {
     }
 
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nome: nomeUsuario,
-          email: email,
-          senha: senha,
-          fusoHorario: "America/Sao_Paulo"
-        }),
+      await apiService.criarUsuario({
+        nome: nomeUsuario,
+        email: email,
+        senha: senha,
+        fusoHorario: "America/Sao_Paulo"
       });
 
-      if (response.status === 201) {
-        Alert.alert('Sucesso', 'Conta criada com sucesso!');
-        router.replace('/login');
-      } else {
-        Alert.alert('Erro', 'Não foi possível criar a conta.');
-      }
-    } catch (error) {
+      Alert.alert('Sucesso', 'Conta criada com sucesso!');
+      router.replace('/login');
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Não foi possível criar a conta.';
+      Alert.alert('Erro', errorMessage);
       console.error('Erro na requisição:', error);
-      Alert.alert('Erro', 'Falha na conexão com o servidor.');
     }
   };
 

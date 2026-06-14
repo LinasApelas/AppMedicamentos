@@ -9,6 +9,7 @@ import br.edu.uninassau.alarme.repository.MedicamentoRepository;
 
 @RestController
 @RequestMapping("/medicamentos")
+@CrossOrigin(origins = "*")
 public class MedicamentoController {
 
     @Autowired

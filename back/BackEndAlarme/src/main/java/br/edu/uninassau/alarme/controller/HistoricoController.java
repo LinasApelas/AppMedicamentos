@@ -10,6 +10,7 @@ import br.edu.uninassau.alarme.repository.HistoricoRepository;
 
 @RestController
 @RequestMapping("/historicos")
+@CrossOrigin(origins = "*")
 public class HistoricoController {
 
     @Autowired

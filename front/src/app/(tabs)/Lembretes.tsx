@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-// --- IMPORTAÇÃO DAS NOTIFICAÇÕES ---
 import * as Notifications from 'expo-notifications';
+import { apiService } from '../../services/api';
 
 interface Remedio {
-  id: string; 
+  id: string;
   username: string;
   nome: string;
   dose?: string;
@@ -17,42 +17,64 @@ interface Remedio {
 }
 
 export default function Lembretes() {
-  const router = useRouter();
-  const db = useSQLiteContext(); 
+  const db = useSQLiteContext();
 
   const [selectedDate, setSelectedDate] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
-  const [takenDays, setTakenDays] = useState<Record<string, boolean>>({});  
+  const [takenDays, setTakenDays] = useState<Record<string, boolean>>({});
 
   const [remedios, setRemedios] = useState<Remedio[]>([]);
-  
-  // --- NOVO ESTADO: Controle individual dos checkboxes ---
   const [tomadosHoje, setTomadosHoje] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(false);
 
-  // --- NOVA LÓGICA: Escuta cliques nos botões da notificação ---
+  const sincronizarMedicamentosServer = async () => {
+    try {
+      const medicamentos = await apiService.listarMedicamentos();
+      for (const medicamento of medicamentos) {
+        const localId = `server-${medicamento.id}`;
+        await db.runAsync(
+          `INSERT OR REPLACE INTO lembretes (id, username, nome, intervalo, frequencia, dose) VALUES (?, ?, ?, ?, ?, ?);`,
+          [
+            localId,
+            '',
+            medicamento.nome,
+            null,
+            null,
+            medicamento.descricao || medicamento.unidadeMedida || '',
+          ]
+        );
+      }
+    } catch (syncError) {
+      console.error('Erro ao sincronizar medicamentos do servidor:', syncError);
+    }
+  };
+
   const lastNotificationResponse = Notifications.useLastNotificationResponse();
 
   useEffect(() => {
-    // Se o usuário clicou na notificação e a ação foi "TOMAR"
     if (
-        lastNotificationResponse && 
-        lastNotificationResponse.actionIdentifier === 'TOMAR'
+      lastNotificationResponse &&
+      lastNotificationResponse.actionIdentifier === 'TOMAR'
     ) {
-        // Recupera o ID que escondemos na tela Adicionar
-        const remedioId = lastNotificationResponse.notification.request.content.data?.id as string;        
-        if (remedioId) {
-            marcarComoTomado(remedioId);
-        }
+      const remedioId = lastNotificationResponse.notification.request.content.data?.id as string;
+      if (remedioId) {
+        marcarComoTomado(remedioId);
+      }
     }
   }, [lastNotificationResponse]);
 
   const carregarMedicamentos = async () => {
+    setLoading(true);
     try {
+      await sincronizarMedicamentosServer();
       const resultado = await db.getAllAsync('SELECT * FROM lembretes;');
-      setRemedios(resultado as Remedio[]);    
+      setRemedios(resultado as Remedio[]);
     } catch (error) {
-      console.error("Erro ao buscar medicamentos no SQLite:", error);
+      console.error('Erro ao buscar medicamentos no SQLite:', error);
+      Alert.alert('Erro', 'Falha ao carregar lembretes locais.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,16 +88,18 @@ export default function Lembretes() {
     const now = new Date();
     setCurrentMonth(now);
     const monthDays = getMonthDays(now);
-    if (monthDays.length) setSelectedDate(monthDays.find(d => d.isToday)?.dateString ?? monthDays[0].dateString);
+    if (monthDays.length) setSelectedDate(monthDays.find((d) => d.isToday)?.dateString ?? monthDays[0].dateString);
   }, []);
 
-  function pad(n: number) { return n < 10 ? `0${n}` : `${n}` }
+  function pad(n: number) {
+    return n < 10 ? `0${n}` : `${n}`;
+  }
 
   function getMonthDays(baseDate: Date) {
     const year = baseDate.getFullYear();
     const month = baseDate.getMonth();
     const lastDay = new Date(year, month + 1, 0).getDate();
-    const names = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const names = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     const arr = [];
     const today = new Date();
     for (let d = 1; d <= lastDay; d++) {
@@ -106,43 +130,46 @@ export default function Lembretes() {
   }
 
   function toggleTaken(dateString: string) {
-      setTakenDays(prev => ({ ...prev, [dateString]: !prev[dateString] }));
+    setTakenDays((prev) => ({ ...prev, [dateString]: !prev[dateString] }));
   }
 
-  const deletarMedicamento = async (id: string) => {
+  const deletarLembreteLocal = async (id: string) => {
     try {
+      const isServerItem = id.startsWith('server-');
+      if (isServerItem) {
+        const registroServidorId = Number(id.replace('server-', ''));
+        if (!Number.isNaN(registroServidorId)) {
+          await apiService.deletarMedicamento(registroServidorId);
+        }
+      }
       await db.runAsync('DELETE FROM lembretes WHERE id = ?;', [id]);
-      carregarMedicamentos(); 
+      carregarMedicamentos();
     } catch (error) {
-      console.error("Erro ao deletar:", error);
+      console.error('Erro ao deletar lembrete local:', error);
+      Alert.alert('Erro', 'Falha ao deletar lembrete. Tente novamente.');
     }
   };
 
-  // --- FUNÇÃO ATUALIZADA: Marca a caixa individual e o calendário ---
   const marcarComoTomado = (idRemedio: string) => {
-    // Alterna a caixa de seleção do remédio específico
-    setTomadosHoje(prev => ({ ...prev, [idRemedio]: !prev[idRemedio] }));
-
-    // Acende a bolinha verde no calendário superior
+    setTomadosHoje((prev) => ({ ...prev, [idRemedio]: !prev[idRemedio] }));
     const hoje = new Date();
     const dateString = `${hoje.getFullYear()}-${pad(hoje.getMonth() + 1)}-${pad(hoje.getDate())}`;
-    setTakenDays(prev => ({ ...prev, [dateString]: true }));
+    setTakenDays((prev) => ({ ...prev, [dateString]: true }));
   };
 
   return (
     <View style={styles.container}>
-      
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => setShowMonthPicker(v => !v)}>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <TouchableOpacity onPress={() => setShowMonthPicker((v) => !v)}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             {showMonthPicker && (
-              <TouchableOpacity onPress={prevMonth} style={{padding:6}}>
+              <TouchableOpacity onPress={prevMonth} style={{ padding: 6 }}>
                 <MaterialIcons name="chevron-left" size={20} color="#12323A" />
               </TouchableOpacity>
             )}
             <Text style={styles.month}>{getMonthName(currentMonth)} {currentMonth.getFullYear()}</Text>
             {showMonthPicker && (
-              <TouchableOpacity onPress={nextMonth} style={{padding:6}}>
+              <TouchableOpacity onPress={nextMonth} style={{ padding: 6 }}>
                 <MaterialIcons name="chevron-right" size={20} color="#12323A" />
               </TouchableOpacity>
             )}
@@ -171,30 +198,25 @@ export default function Lembretes() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}></Text>
+          <Text style={styles.sectionTitle}>Lembretes Locais</Text>
         </View>
 
-        {remedios.length === 0 ? (
-          <Text style={styles.fonte}>Adicione Lembretes em <MaterialIcons name={'add-circle-outline'} size={24} color="#808080" style={styles.icon} /> Adicionar.</Text>
+        {loading ? (
+          <ActivityIndicator size="large" color="#1a73e8" />
+        ) : remedios.length === 0 ? (
+          <Text style={styles.fonte}>Adicione lembretes em Adicionar.</Text>
         ) : (
           remedios.map((remedio) => (
             <View key={remedio.id} style={styles.cardRemedio}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-
-                  
-                  {/* Nome do remédio (Fica riscado se for tomado) */}
                   <Text style={[styles.nomeRemedio, tomadosHoje[remedio.id] && { textDecorationLine: 'line-through', color: '#808080' }]}>
                     {remedio.nome}
                   </Text>
                 </View>
-
-                {/* Botão de Excluir */}
-                <TouchableOpacity onPress={() => deletarMedicamento(remedio.id)} style={{ padding: 4 }}>
+                <TouchableOpacity onPress={() => deletarLembreteLocal(remedio.id)} style={{ padding: 4 }}>
                   <MaterialIcons name="delete" size={24} color="#e74c3c" />
                 </TouchableOpacity>
-
               </View>
               <Text style={styles.detalheRemedio}>Para: {remedio.username || '(você)'}</Text>
               <Text style={styles.detalheRemedio}>Próxima dose: {remedio.dose || 'Não informada'}</Text>
@@ -222,11 +244,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingTop: 44,
     paddingBottom: 8,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#12323A',
   },
   month: {
     fontSize: 14,
@@ -275,8 +292,7 @@ const styles = StyleSheet.create({
   pillNumberSelected: {
     color: '#fff',
   },
-  pillSelected: {
-  },
+  pillSelected: {},
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 20,
@@ -302,7 +318,6 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   fonte: {
-    
     fontSize: 16,
     color: '#808080',
     textAlign: 'center',
@@ -326,8 +341,7 @@ const styles = StyleSheet.create({
     color: '#808080',
     marginTop: 4,
   },
-
-    icon: {
+  icon: {
     marginRight: 10,
-    }
+  },
 });

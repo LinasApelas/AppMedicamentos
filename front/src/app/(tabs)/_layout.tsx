@@ -2,37 +2,13 @@ import { Tabs, Stack } from 'expo-router';
 import { LogBox } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
-// 1. Importando o SQLiteProvider
-import { SQLiteProvider } from 'expo-sqlite'; 
 
 LogBox.ignoreLogs(['expo-notifications: Android Push notifications']);
 
-// 2. Função para criar a tabela na primeira vez que o app abrir
-async function inicializarBanco(db: any) {
-  try {
-    await db.execAsync(`
-      PRAGMA journal_mode = WAL;
-      CREATE TABLE IF NOT EXISTS lembretes (
-        id TEXT PRIMARY KEY NOT NULL,
-        username TEXT,
-        nome TEXT NOT NULL,
-        intervalo INT,
-        frequencia INT,
-        dose TEXT
-      );
-    `);
-    console.log("Banco de dados inicializado com sucesso.");
-  } catch (error) {
-    console.error("Erro ao inicializar banco de dados:", error);
-  }
-}
 
 export default function Layout() {
     return (
-        // 3. Envolvendo suas Tabs com o provedor do banco de dados
-        // --- NOME DO BANCO ALTERADO AQUI PARA _v2.db ---
-        <SQLiteProvider databaseName="medicamentos_v2.db" onInit={inicializarBanco}>
-            
+        <>
             {/* --- ESTA É A LINHA MÁGICA QUE ESCONDE O "(tabs)" DO TOPO --- */}
             <Stack.Screen options={{ headerShown: false }} />
 
@@ -74,7 +50,7 @@ export default function Layout() {
                     }}
                 />
             </Tabs>
-        </SQLiteProvider>
+        </>
     )
 }
 

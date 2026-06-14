@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite'; 
 import * as Notifications from 'expo-notifications'; 
+import { apiService } from '../../services/api';
 
 // 1. Configuração padrão de exibição
 Notifications.setNotificationHandler({
@@ -43,6 +44,7 @@ export default function Adicionar() {
     const [proximaDose, setProximaDose] = useState('');
     const [intervalo, setIntervalo] = useState('');
     const [frequencia, setFrequencia] = useState('');
+    const [loading, setLoading] = useState(false);
 
 const handleSalvar = async () => {
         if (!nomeMedicacao.trim()) {
@@ -68,13 +70,28 @@ const handleSalvar = async () => {
         return;
         }
 
+        setLoading(true);
+
         try {
             const idUnico = Date.now().toString();
 
+            // Salvar no banco de dados local (SQLite)
             await db.runAsync(
                 `INSERT INTO lembretes (id, username, nome, intervalo, frequencia, dose) VALUES (?, ?, ?, ?, ?, ?);`,
                 [idUnico, nomePessoa, nomeMedicacao, intervalo, frequencia, proximaDose]
             );
+
+            // Salvar no servidor backend também
+            try {
+                await apiService.criarMedicamento({
+                    nome: nomeMedicacao,
+                    unidadeMedida: 'porção',
+                    descricao: `Intervalo: ${intervalo}h, Frequência: ${frequencia} dias`,
+                });
+            } catch (serverError) {
+                console.error('Aviso: Não foi possível sincronizar com o servidor:', serverError);
+                Alert.alert('Aviso', 'Medicamento salvo localmente, mas não foi possível sincronizar com o servidor.');
+            }
 
             const [horaString, minutoString] = proximaDose.split(':');
             const hora = parseInt(horaString, 10);
@@ -87,11 +104,10 @@ const handleSalvar = async () => {
                 if (Platform.OS === 'android') {
                     await Notifications.setNotificationChannelAsync('remedios-urgentes', {
                         name: 'Alarmes de Medicamentos',
-                        importance: Notifications.AndroidImportance.MAX, // Força o pop-up na tela
-                        // Padrão de vibração estilo despertador: vibra 1s, para 0.5s, vibra 1s...
+                        importance: Notifications.AndroidImportance.MAX,
                         vibrationPattern: [0, 1000, 500, 1000, 500, 1000, 500, 1000],
                         sound: 'default',
-                        bypassDnd: true, // Tenta contornar o modo "Não Perturbe" se o usuário permitir
+                        bypassDnd: true,
                     });
                 }
 
@@ -127,6 +143,8 @@ const handleSalvar = async () => {
         } catch (error) {
             console.error(error);
             Alert.alert("Erro", "Não foi possível salvar.");
+        } finally {
+            setLoading(false);
         }
     };
     
@@ -191,8 +209,9 @@ const handleSalvar = async () => {
 
             <View style={styles.botao}>
                 <Button 
-                    titulo="Salvar"
+                    titulo={loading ? 'Salvando...' : 'Salvar'}
                     onPress={handleSalvar}
+                    disabled={loading}
                 />
             </View>
         </View>

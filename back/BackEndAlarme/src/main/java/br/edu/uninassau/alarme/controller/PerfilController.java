@@ -10,6 +10,7 @@ import br.edu.uninassau.alarme.repository.PerfilRepository;
 
 @RestController
 @RequestMapping("/perfis")
+@CrossOrigin(origins = "*")
 public class PerfilController {
 
     @Autowired

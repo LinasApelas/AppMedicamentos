@@ -1,19 +1,41 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 // --- IMPORTAÇÃO DA IMAGE ADICIONADA AQUI ---
 import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Alert, Image } from 'react-native';
 import Button from '../components/Button';
 import Input from '../components/Input';
-
-// ATENÇÃO: Substitua pelo IP da sua máquina
-const API_URL = 'http://192.168.1.14:8080/usuarios';
+import { apiService } from '../services/api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
   const router = useRouter();
-  
+  const db = useSQLiteContext();
+
+  const sincronizarMedicamentosServer = async () => {
+    try {
+      const medicamentosSeriais = await apiService.listarMedicamentos();
+      for (const medicamento of medicamentosSeriais) {
+        const localId = `server-${medicamento.id}`;
+        await db.runAsync(
+          `INSERT OR REPLACE INTO lembretes (id, username, nome, intervalo, frequencia, dose) VALUES (?, ?, ?, ?, ?, ?);`,
+          [
+            localId,
+            '',
+            medicamento.nome,
+            null,
+            null,
+            medicamento.descricao || medicamento.unidadeMedida || '',
+          ]
+        );
+      }
+    } catch (syncError) {
+      console.error('Erro ao sincronizar medicamentos do servidor:', syncError);
+    }
+  };
+
   const handleLogin = async () => { 
     if (!email || !senha) {
       Alert.alert('Atenção', 'Preencha o e-mail e a senha!');
@@ -21,29 +43,22 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          senha: senha,
-        }),
+      const usuarioLogado = await apiService.fazerLogin({
+        email: email,
+        senha: senha,
       });
 
-      if (response.ok) {
-        const usuarioLogado = await response.json();
-        Alert.alert('Sucesso', `Bem-vindo, ${usuarioLogado.nome}!`);
-        router.replace('../(tabs)/Perfil');
-      } else if (response.status === 401) {
+      await sincronizarMedicamentosServer();
+      Alert.alert('Sucesso', `Bem-vindo, ${usuarioLogado.nome}!`);
+      router.replace('../(tabs)/Perfil');
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Ocorreu um erro ao fazer login.';
+      if (errorMessage.includes('401')) {
         Alert.alert('Erro', 'E-mail ou senha incorretos.');
       } else {
-        Alert.alert('Erro', 'Ocorreu um erro ao fazer login.');
+        Alert.alert('Erro', errorMessage);
       }
-    } catch (error) {
       console.error('Erro na requisição:', error);
-      Alert.alert('Erro', 'Falha na conexão com o servidor. Verifique seu IP.');
     }
   };
 

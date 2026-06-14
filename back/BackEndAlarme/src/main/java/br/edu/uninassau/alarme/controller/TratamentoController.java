@@ -10,6 +10,7 @@ import br.edu.uninassau.alarme.repository.TratamentoRepository;
 
 @RestController
 @RequestMapping("/tratamentos")
+@CrossOrigin(origins = "*")
 public class TratamentoController {
 
     @Autowired

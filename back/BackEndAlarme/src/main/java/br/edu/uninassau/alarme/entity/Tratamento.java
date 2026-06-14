@@ -2,6 +2,8 @@ package br.edu.uninassau.alarme.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tratamento")
@@ -36,6 +38,9 @@ public class Tratamento {
     @ManyToOne
     @JoinColumn(name = "medicamento_id", nullable = false)
     private Medicamento medicamento;
+
+    @OneToMany(mappedBy = "tratamento", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Historico> historicos = new ArrayList<>();
 
     public Tratamento() {}
 
@@ -79,4 +84,7 @@ public class Tratamento {
 
     public Medicamento getMedicamento() { return medicamento; }
     public void setMedicamento(Medicamento medicamento) { this.medicamento = medicamento; }
+
+    public List<Historico> getHistoricos() { return historicos; }
+    public void setHistoricos(List<Historico> historicos) { this.historicos = historicos; }
 }
