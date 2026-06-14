@@ -1,20 +1,69 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+// --- IMPORTAÇÃO DAS NOTIFICAÇÕES ---
+import * as Notifications from 'expo-notifications';
+
+interface Remedio {
+  id: string; 
+  nome: string;
+  dose?: string;
+  intervalo?: string;
+  frequencia?: string;
+  data?: string;
+}
 
 export default function Lembretes() {
   const router = useRouter();
+  const db = useSQLiteContext(); 
+
   const [selectedDate, setSelectedDate] = useState('');
-  const [weekDays, setWeekDays] = useState<any[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
-  const [takenDays, setTakenDays] = useState<Record<string, boolean>>({});
+  const [takenDays, setTakenDays] = useState<Record<string, boolean>>({});  
+
+  const [remedios, setRemedios] = useState<Remedio[]>([]);
+  
+  // --- NOVO ESTADO: Controle individual dos checkboxes ---
+  const [tomadosHoje, setTomadosHoje] = useState<Record<string, boolean>>({});
+
+  // --- NOVA LÓGICA: Escuta cliques nos botões da notificação ---
+  const lastNotificationResponse = Notifications.useLastNotificationResponse();
+
+  useEffect(() => {
+    // Se o usuário clicou na notificação e a ação foi "TOMAR"
+    if (
+        lastNotificationResponse && 
+        lastNotificationResponse.actionIdentifier === 'TOMAR'
+    ) {
+        // Recupera o ID que escondemos na tela Adicionar
+        const remedioId = lastNotificationResponse.notification.request.content.data?.id as string;        
+        if (remedioId) {
+            marcarComoTomado(remedioId);
+        }
+    }
+  }, [lastNotificationResponse]);
+
+  const carregarMedicamentos = async () => {
+    try {
+      const resultado = await db.getAllAsync('SELECT * FROM lembretes;');
+      setRemedios(resultado as Remedio[]);    
+    } catch (error) {
+      console.error("Erro ao buscar medicamentos no SQLite:", error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarMedicamentos();
+    }, [])
+  );
 
   useEffect(() => {
     const now = new Date();
     setCurrentMonth(now);
-    // inicializa a seleção com hoje
     const monthDays = getMonthDays(now);
     if (monthDays.length) setSelectedDate(monthDays.find(d => d.isToday)?.dateString ?? monthDays[0].dateString);
   }, []);
@@ -26,7 +75,7 @@ export default function Lembretes() {
     const month = baseDate.getMonth();
     const lastDay = new Date(year, month + 1, 0).getDate();
     const names = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-    const arr: Array<{date: Date; dateString: string; dayNumber: number; dayShort: string; isToday?: boolean}> = [];
+    const arr = [];
     const today = new Date();
     for (let d = 1; d <= lastDay; d++) {
       const dt = new Date(year, month, d);
@@ -56,14 +105,33 @@ export default function Lembretes() {
   }
 
   function toggleTaken(dateString: string) {
-    setTakenDays(prev => ({ ...prev, [dateString]: !prev[dateString] }));
+      setTakenDays(prev => ({ ...prev, [dateString]: !prev[dateString] }));
   }
+
+  const deletarMedicamento = async (id: string) => {
+    try {
+      await db.runAsync('DELETE FROM lembretes WHERE id = ?;', [id]);
+      carregarMedicamentos(); 
+    } catch (error) {
+      console.error("Erro ao deletar:", error);
+    }
+  };
+
+  // --- FUNÇÃO ATUALIZADA: Marca a caixa individual e o calendário ---
+  const marcarComoTomado = (idRemedio: string) => {
+    // Alterna a caixa de seleção do remédio específico
+    setTomadosHoje(prev => ({ ...prev, [idRemedio]: !prev[idRemedio] }));
+
+    // Acende a bolinha verde no calendário superior
+    const hoje = new Date();
+    const dateString = `${hoje.getFullYear()}-${pad(hoje.getMonth() + 1)}-${pad(hoje.getDate())}`;
+    setTakenDays(prev => ({ ...prev, [dateString]: true }));
+  };
 
   return (
     <View style={styles.container}>
       
       <View style={styles.topBar}>
-        <Text style={styles.title}>Alarmes</Text>
         <TouchableOpacity onPress={() => setShowMonthPicker(v => !v)}>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             {showMonthPicker && (
@@ -100,25 +168,53 @@ export default function Lembretes() {
         </ScrollView>
       </View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={styles.scrollContent}
-      >
-
-        {/* 3. Lista de Remédios */}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Remédios de Hoje</Text>
         </View>
 
-        {/* Espaço extra no final da lista para não ficar escondido atrás do botão */}
+        {remedios.length === 0 ? (
+          <Text style={styles.fonte}>Nenhum remédio agendado ainda.</Text>
+        ) : (
+          remedios.map((remedio) => (
+            <View key={remedio.id} style={styles.cardRemedio}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  {/* --- NOVO CHECKBOX (CAIXA DE SELEÇÃO) --- */}
+                  <TouchableOpacity onPress={() => marcarComoTomado(remedio.id)}>
+                    <MaterialIcons 
+                        name={tomadosHoje[remedio.id] ? "check-box" : "check-box-outline-blank"} 
+                        size={28} 
+                        color={tomadosHoje[remedio.id] ? "#2E7D32" : "#808080"} 
+                    />
+                  </TouchableOpacity>
+                  
+                  {/* Nome do remédio (Fica riscado se for tomado) */}
+                  <Text style={[styles.nomeRemedio, tomadosHoje[remedio.id] && { textDecorationLine: 'line-through', color: '#808080' }]}>
+                    {remedio.nome}
+                  </Text>
+                </View>
+
+                {/* Botão de Excluir */}
+                <TouchableOpacity onPress={() => deletarMedicamento(remedio.id)} style={{ padding: 4 }}>
+                  <MaterialIcons name="delete" size={24} color="#e74c3c" />
+                </TouchableOpacity>
+
+              </View>
+              <Text style={styles.detalheRemedio}>Próxima dose: {remedio.dose || 'Não informada'}</Text>
+              <Text style={styles.detalheRemedio}>
+                Intervalo: {remedio.intervalo || 'Não informado'} | Frequência: {remedio.frequencia || 'Não informada'}
+              </Text>
+            </View>
+          ))
+        )}
+
         <View style={{ height: 80 }} />
       </ScrollView>
-
     </View>
-
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -168,7 +264,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6F6F8',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -186,25 +282,6 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   pillSelected: {
-    // optional container style when selected
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-  },
-  saudacao: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#1B3B45',
-  },
-  subtitulo: {
-    fontSize: 16,
-    color: '#5d6d7e',
-    marginTop: 4,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -230,19 +307,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#fff',
   },
-
-  container2: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-},
-
   fonte: {
-    fontSize: 18,
-    marginLeft: 4,
+    fontSize: 16,
     color: '#808080',
-    fontWeight: 'normal',
-},
-
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  cardRemedio: {
+    backgroundColor: '#F7F9F9',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E6E6E6',
+  },
+  nomeRemedio: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#12323A',
+  },
+  detalheRemedio: {
+    fontSize: 14,
+    color: '#5d6d7e',
+    marginTop: 4,
+  },
 });
