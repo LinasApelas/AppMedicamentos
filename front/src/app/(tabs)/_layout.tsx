@@ -14,9 +14,10 @@ async function inicializarBanco(db: any) {
       PRAGMA journal_mode = WAL;
       CREATE TABLE IF NOT EXISTS lembretes (
         id TEXT PRIMARY KEY NOT NULL,
+        username TEXT,
         nome TEXT NOT NULL,
-        intervalo TEXT,
-        frequencia TEXT,
+        intervalo INT,
+        frequencia INT,
         dose TEXT
       );
     `);
@@ -37,7 +38,6 @@ export default function Layout() {
             <Tabs
                 screenOptions={{
                     tabBarActiveTintColor: '#1a73e8', // Cor do ícone e texto quando a aba está selecionada
-                    tabBarStyle: {height: 100 , paddingBottom: 40 , paddingTop: 10}, // Aumenta a altura da barra de navegação
                     tabBarIconStyle: {flex: 1,justifyContent: 'center',alignItems: 'center',},
                     tabBarInactiveTintColor: '#808080', // Cor quando a aba não está selecionada
                     headerShown: true, // Mantemos como true para manter o título limpo das abas (Lembretes, Perfil, etc)

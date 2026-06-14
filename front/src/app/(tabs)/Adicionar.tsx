@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Alert,  KeyboardAvoidingView, Platform, ScrollView} from 'react-native';
+import Button from '../../components/Button';
+import Input from '../../components/Input';
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite'; 
 import * as Notifications from 'expo-notifications'; 
-
-import Button from '../../components/Button';
-import Input from '../../components/Input';
 
 // 1. Configuração padrão de exibição
 Notifications.setNotificationHandler({
@@ -33,15 +32,19 @@ Notifications.setNotificationCategoryAsync('acoes-remedio', [
 ]);
 
 export default function Adicionar() {
+
     const router = useRouter();
     const db = useSQLiteContext(); 
+    
 
-    const [nomeMedicacao, setNomeMedicacao] = useState('');
+    const [ParaOutraPessoa, setParaOutraPessoa] = useState(false);
+    const [nomePessoa, setNomePessoa] = useState('');
+    const [nomeMedicacao, setMedicacao] = useState('');
+    const [proximaDose, setProximaDose] = useState('');
     const [intervalo, setIntervalo] = useState('');
     const [frequencia, setFrequencia] = useState('');
-    const [proximaDose, setProximaDose] = useState('');
 
-    const handleSalvar = async () => {
+const handleSalvar = async () => {
         if (!nomeMedicacao.trim()) {
             Alert.alert("Atenção", "Por favor, digite o nome do medicamento.");
             return;
@@ -53,12 +56,24 @@ export default function Adicionar() {
             return;
         }
 
+        const regexIntervalo = /^\d+$/;
+        if (!regexIntervalo.test(intervalo)) {
+        Alert.alert("Formato Inválido", "Por favor, Preencha os campos necessários ou digite apenas números.");
+        return;
+        }
+        
+        const regexFrequencia = /^\d+$/;
+        if (!regexIntervalo.test(frequencia)) {
+        Alert.alert("Formato Inválido", "Por favor, Preencha os campos necessários ou digite apenas números.");
+        return;
+        }
+
         try {
             const idUnico = Date.now().toString();
 
             await db.runAsync(
-                `INSERT INTO lembretes (id, nome, intervalo, frequencia, dose) VALUES (?, ?, ?, ?, ?);`,
-                [idUnico, nomeMedicacao, intervalo, frequencia, proximaDose]
+                `INSERT INTO lembretes (id, username, nome, intervalo, frequencia, dose) VALUES (?, ?, ?, ?, ?, ?);`,
+                [idUnico, nomePessoa, nomeMedicacao, intervalo, frequencia, proximaDose]
             );
 
             const [horaString, minutoString] = proximaDose.split(':');
@@ -100,8 +115,9 @@ export default function Adicionar() {
             } else {
                 Alert.alert("Aviso", "Permita as notificações para os alarmes funcionarem.");
             }
-
-            setNomeMedicacao('');
+            
+            setNomePessoa('');
+            setMedicacao('');
             setIntervalo('');
             setFrequencia('');
             setProximaDose('');
@@ -113,51 +129,132 @@ export default function Adicionar() {
             Alert.alert("Erro", "Não foi possível salvar.");
         }
     };
+    
+        return(
 
-    return (
-        <KeyboardAvoidingView 
-            style={styles.container} 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <View style={styles.inputContainer}>
-                    <Input
-                        iconName="edit-2" 
-                        placeholder="Nome da Medicação:"
-                        value={nomeMedicacao}
-                        onChangeText={setNomeMedicacao}
-                    />
-                    <Input
-                        placeholder="Intervalo de Tempo:"
-                        iconName='clock'
-                        value={intervalo}
-                        onChangeText={setIntervalo}
-                    />
-                    <Input
-                        placeholder="Frequência:"
-                        iconName='calendar'
-                        value={frequencia}
-                        onChangeText={setFrequencia}
-                    />
-                    <Input
-                        placeholder="Horário da Próxima Dose (Ex: 14:30):"
-                        iconName='info'
-                        value={proximaDose}
-                        onChangeText={setProximaDose}
-                    />
+            <View style={styles.container}>
+
+                <View style={styles.containerDeTroca}>
+                    <TouchableOpacity
+                    style={[ styles.botaoDeTroca, !ParaOutraPessoa ? styles.botaoAtivo : styles.botaoDesligado ]}
+                    onPress={() => setParaOutraPessoa(false)}>
+                    <Text style={!ParaOutraPessoa ? styles.textoAtivo : styles.textoDesligado}> Para Mim </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                    style={[ styles.botaoDeTroca, ParaOutraPessoa ? styles.botaoAtivo : styles.botaoDesligado ]}
+                    onPress={() => setParaOutraPessoa(true)}>
+                    <Text style={ParaOutraPessoa ? styles.textoAtivo : styles.textoDesligado}> Outra Pessoa </Text>
+                    </TouchableOpacity>
                 </View>
-            </ScrollView>
 
-             <View style={styles.botao}>
-                <Button titulo="Salvar" onPress={handleSalvar} />
+    {ParaOutraPessoa && (
+        <View style={styles.input}>
+            <Input
+                iconName="user" 
+                placeholder="Nome da Outra Pessoa..." //input simples q captura o nome do outro paciente quando for o caso
+                value={nomePessoa}
+                onChangeText={setNomePessoa}
+            />
+        </View>        
+    )}
+
+        <View style={styles.input}>
+            <Input
+                iconName="edit-2" 
+                placeholder="Nome da(s) Medicação(ões)..." //input simples q captura o nome da medicação
+                value={nomeMedicacao}
+                onChangeText={setMedicacao}
+            />
+
+            <Input
+                placeholder="Horário da Primeira/Próxima Dose..." //horário que a primeira ou próxima dose será tomada
+                iconName='info'
+                value={proximaDose}
+                onChangeText={setProximaDose}
+            />
+
+             <Input
+                placeholder="Intervalo de Tempo (ex: de 8 em 8 horas)..." //de quantas em quantas horas será tomada a medicação
+                iconName='clock'
+                value={intervalo}
+                onChangeText={setIntervalo}
+            />
+
+            <Input
+                placeholder="Frequência... (ex: quantidade de dias)" //quantidade de dias que a medicação será tomada
+                iconName='calendar'
+                value={frequencia}
+                onChangeText={setFrequencia}
+            />
+        </View>
+
+            <View style={styles.botao}>
+                <Button 
+                    titulo="Salvar"
+                    onPress={handleSalvar}
+                />
             </View>
-        </KeyboardAvoidingView>
-    );    
+        </View>
+
+  );
 }
 
+
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#ffffff' },
-    scrollContainer: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 },
-    inputContainer: { width: '95%' },
-    botao: { position: 'absolute', bottom: 10, width: '95%', alignSelf: 'center' }
-});
+
+container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    paddingTop: 20,
+},
+
+botao: {
+    position: 'absolute',
+    bottom: 20,
+    width: '95%', 
+},
+
+input: {
+    width: '95%',
+},
+
+containerDeTroca: {
+    flexDirection: 'row',
+    borderWidth: 0.5,
+    borderColor: '#000000',
+    borderRadius: 30,
+    marginBottom: 20,
+    height: 60,
+    width: '95%',
+    overflow: 'hidden',
+},
+
+botaoDeTroca: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+},
+
+botaoAtivo: {
+    backgroundColor: '#99D9EA',
+},
+
+botaoDesligado: {
+
+},
+
+textoAtivo: {
+    color: '#000000',
+    fontWeight: 'bold',
+    fontSize: 18,
+},
+
+textoDesligado: {
+    color: '#808080',
+    fontSize: 18,
+    fontWeight: 'bold',
+},
+  
+})

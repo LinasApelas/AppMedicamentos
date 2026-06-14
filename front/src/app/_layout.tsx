@@ -8,9 +8,10 @@ async function inicializarBanco(db: { execAsync: (arg0: string) => any; }) {
       PRAGMA journal_mode = WAL;
       CREATE TABLE IF NOT EXISTS lembretes (
         id TEXT PRIMARY KEY NOT NULL,
+        username TEXT,
         nome TEXT NOT NULL,
-        intervalo TEXT,
-        frequencia TEXT,
+        intervalo INT,
+        frequencia INT,
         dose TEXT
       );
     `);
@@ -22,9 +23,14 @@ async function inicializarBanco(db: { execAsync: (arg0: string) => any; }) {
 
 export default function Layout() {
   return (
+    
     // Envolve toda a aplicação com o provedor do banco de dados
     <SQLiteProvider databaseName="medicamentos.db" onInit={inicializarBanco}>
-      <Stack />
+      <Stack
+        initialRouteName="termos"
+        screenOptions={{ headerShown: false }}
+      >
+      </Stack>
     </SQLiteProvider>
   );
 }

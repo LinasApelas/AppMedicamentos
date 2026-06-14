@@ -8,10 +8,11 @@ import * as Notifications from 'expo-notifications';
 
 interface Remedio {
   id: string; 
+  username: string;
   nome: string;
   dose?: string;
-  intervalo?: string;
-  frequencia?: string;
+  intervalo?: number;
+  frequencia?: number;
   data?: string;
 }
 
@@ -170,25 +171,18 @@ export default function Lembretes() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Remédios de Hoje</Text>
+          <Text style={styles.sectionTitle}></Text>
         </View>
 
         {remedios.length === 0 ? (
-          <Text style={styles.fonte}>Nenhum remédio agendado ainda.</Text>
+          <Text style={styles.fonte}>Adicione Lembretes em <MaterialIcons name={'add-circle-outline'} size={24} color="#808080" style={styles.icon} /> Adicionar.</Text>
         ) : (
           remedios.map((remedio) => (
             <View key={remedio.id} style={styles.cardRemedio}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  {/* --- NOVO CHECKBOX (CAIXA DE SELEÇÃO) --- */}
-                  <TouchableOpacity onPress={() => marcarComoTomado(remedio.id)}>
-                    <MaterialIcons 
-                        name={tomadosHoje[remedio.id] ? "check-box" : "check-box-outline-blank"} 
-                        size={28} 
-                        color={tomadosHoje[remedio.id] ? "#2E7D32" : "#808080"} 
-                    />
-                  </TouchableOpacity>
+
                   
                   {/* Nome do remédio (Fica riscado se for tomado) */}
                   <Text style={[styles.nomeRemedio, tomadosHoje[remedio.id] && { textDecorationLine: 'line-through', color: '#808080' }]}>
@@ -202,10 +196,10 @@ export default function Lembretes() {
                 </TouchableOpacity>
 
               </View>
+              <Text style={styles.detalheRemedio}>Para: {remedio.username || '(você)'}</Text>
               <Text style={styles.detalheRemedio}>Próxima dose: {remedio.dose || 'Não informada'}</Text>
-              <Text style={styles.detalheRemedio}>
-                Intervalo: {remedio.intervalo || 'Não informado'} | Frequência: {remedio.frequencia || 'Não informada'}
-              </Text>
+              <Text style={styles.detalheRemedio}>Intervalo: {remedio.intervalo || 'Não informado'}</Text>
+              <Text style={styles.detalheRemedio}>Frequência: {remedio.frequencia || 'Não informada'}</Text>
             </View>
           ))
         )}
@@ -308,6 +302,7 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   fonte: {
+    
     fontSize: 16,
     color: '#808080',
     textAlign: 'center',
@@ -315,20 +310,24 @@ const styles = StyleSheet.create({
   },
   cardRemedio: {
     backgroundColor: '#F7F9F9',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E6E6E6',
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderWidth: 0.5,
+    borderColor: '#000000',
   },
   nomeRemedio: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#12323A',
+    color: '#000000',
   },
   detalheRemedio: {
-    fontSize: 14,
-    color: '#5d6d7e',
+    fontSize: 16,
+    color: '#808080',
     marginTop: 4,
   },
+
+    icon: {
+    marginRight: 10,
+    }
 });

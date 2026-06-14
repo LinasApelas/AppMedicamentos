@@ -10,7 +10,7 @@ export default function Perfil() {
       <View style={styles.botao}>
         <Button
           titulo="Entrar"
-          onPress={() => router.push('../termos')}
+          onPress={() => router.push('../login')}
           corFundo='#9DD7E2'
           />
       </View>

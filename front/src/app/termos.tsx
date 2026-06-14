@@ -13,12 +13,12 @@ export default function Termos() {
         
         <View style={styles.textoContainer}>
           <Text style={styles.textoTermos}>
-            Bem-vindo ao AppMedicamentos. Ao utilizar nossa plataforma, você concorda com os seguintes termos:{"\n\n"}
+            Bem-vindo ao SyncMed. Ao utilizar nosso aplicativo, você concorda com os seguintes termos:{"\n\n"}
             1. O aplicativo serve para auxílio no controle de medicação e não substitui orientações médicas.{"\n\n"}
             2. Seus dados de saúde são armazenados de forma segura e privada.{"\n\n"}
             3. Você é responsável por configurar corretamente os horários dos seus avisos.{"\n\n"}
             4. O uso continuado do app implica na aceitação de futuras atualizações destes termos.{"\n\n"}
-            Certifique-se de ler atentamente todas as diretrizes antes de prosseguir com o seu cadastro.
+            Certifique-se de ler atentamente todas as diretrizes antes de prosseguir com o uso do aplicativo e cadastro.
           </Text>
         </View>
       </View>
@@ -37,7 +37,7 @@ export default function Termos() {
         <View style={styles.Botao}>
           <Button 
             titulo="Aceitar e Continuar" 
-            onPress={() => router.push('../Lembretes')}
+            onPress={() => router.replace('../Lembretes')}
           />
         </View>
 
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   titulo: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: '#000000',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   },
   textoTermos: {
     fontSize: 16,
-    color: '#5d6d7e',
+    color: '#808080',
     lineHeight: 24,
     textAlign: 'justify',
   },

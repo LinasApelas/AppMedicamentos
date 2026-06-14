@@ -34,7 +34,7 @@ export default function Login() {
       if (response.ok) {
         const usuarioLogado = await response.json();
         Alert.alert('Sucesso', `Bem-vindo, ${usuarioLogado.nome}!`);
-        router.replace('../(tabs)/Lembretes');
+        router.replace('../(tabs)/Perfil');
       } else if (response.status === 401) {
         Alert.alert('Erro', 'E-mail ou senha incorretos.');
       } else {
