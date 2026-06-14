@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Alert } from 'react-native';
+// --- IMPORTAÇÃO DA IMAGE ADICIONADA AQUI ---
+import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Alert, Image } from 'react-native';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
@@ -55,7 +56,12 @@ export default function Login() {
         <View style={styles.innerContainer}>
           
           <View style={styles.header}>
-            {/* Colocar Logo */}
+            {/* --- IMAGEM ADICIONADA AQUI NA PARTE BRANCA --- */}
+            <Image 
+              source={require('../img/Logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
 
           <View style={styles.formContainer}>
@@ -110,6 +116,11 @@ const styles = StyleSheet.create({
     flex: 0.4,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // --- ESTILO DA LOGO ---
+  logo: {
+    width: 200,  // Você pode aumentar ou diminuir conforme achar melhor
+    height: 200,
   },
   headerTitle: {
     fontSize: 26,

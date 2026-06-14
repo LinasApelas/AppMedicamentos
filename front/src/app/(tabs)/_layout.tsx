@@ -1,4 +1,4 @@
-import { Tabs, Stack } from 'expo-router'; // <-- Adicionamos o Stack aqui na importação
+import { Tabs, Stack } from 'expo-router'; 
 import { LogBox } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
@@ -30,7 +30,8 @@ async function inicializarBanco(db: any) {
 export default function Layout() {
     return (
         // 3. Envolvendo suas Tabs com o provedor do banco de dados
-        <SQLiteProvider databaseName="medicamentos.db" onInit={inicializarBanco}>
+        // --- NOME DO BANCO ALTERADO AQUI PARA _v2.db ---
+        <SQLiteProvider databaseName="medicamentos_v2.db" onInit={inicializarBanco}>
             
             {/* --- ESTA É A LINHA MÁGICA QUE ESCONDE O "(tabs)" DO TOPO --- */}
             <Stack.Screen options={{ headerShown: false }} />

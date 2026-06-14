@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View} from 'react-native';
+// --- IMPORTAÇÃO DA IMAGE ADICIONADA AQUI ---
+import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Image } from 'react-native';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
@@ -23,8 +24,14 @@ export default function RecuperarSenhaCodigo() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.innerContainer}>
           
-          {/* Espaço Superior */}
-          <View style={styles.header}></View>
+          {/* Espaço Superior - Agora com a Logo */}
+          <View style={styles.header}>
+            <Image 
+              source={require('../img/Logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
 
           {/* Parte Inferior - O Contentor Branco com a Curva Superior */}
           <View style={styles.formContainer}>
@@ -42,7 +49,7 @@ export default function RecuperarSenhaCodigo() {
 
             {/* Texto Explicativo (Embaixo do Input) */}
             <Text style={styles.textoInstrucao}>
-              Digite o codigo que foi enviado para o seu e-mail.
+              Digite o código que foi enviado para o seu e-mail.
             </Text>
 
             {/* Botão Principal */}
@@ -74,6 +81,11 @@ const styles = StyleSheet.create({
     flex: 0.4,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // --- ESTILO DA LOGO ---
+  logo: {
+    width: 200,  
+    height: 200,
   },
   formContainer: {
     flex: 0.6,
