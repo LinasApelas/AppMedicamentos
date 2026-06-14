@@ -37,7 +37,7 @@ export default function Termos() {
         <View style={styles.Botao}>
           <Button 
             titulo="Aceitar e Continuar" 
-            onPress={() => router.replace('../Lembretes')}
+            onPress={() => router.push('../Lembretes')}
           />
         </View>
 

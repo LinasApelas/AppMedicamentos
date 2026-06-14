@@ -27,7 +27,7 @@ export default function Layout() {
     // Envolve toda a aplicação com o provedor do banco de dados
     <SQLiteProvider databaseName="medicamentos_v2.db" onInit={inicializarBanco}>
       <Stack
-        initialRouteName="termos"
+        initialRouteName="index"
         screenOptions={{ headerShown: false }}
       >
       </Stack>
