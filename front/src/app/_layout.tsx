@@ -1,33 +1,19 @@
 import { SQLiteProvider } from 'expo-sqlite';
 import { Stack } from 'expo-router';
+import * as Notifications from 'expo-notifications';
 
-// Função para criar a tabela no primeiro acesso
-async function inicializarBanco(db: { execAsync: (arg0: string) => any; }) {
-  try {
-    await db.execAsync(`
-      PRAGMA journal_mode = WAL;
-      CREATE TABLE IF NOT EXISTS lembretes (
-        id TEXT PRIMARY KEY NOT NULL,
-        username TEXT,
-        nome TEXT NOT NULL,
-        intervalo INT,
-        frequencia INT,
-        dose TEXT
-      );
-    `);
-    console.log("Banco de dados inicializado com sucesso.");
-  } catch (error) {
-    console.error("Erro ao inicializar banco de dados:", error);
-  }
-}
+import { inicializarBanco } from '../services/lembretes';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
+});
 
 export default function Layout() {
   return (
-    
+
     // Envolve toda a aplicação com o provedor do banco de dados
     <SQLiteProvider databaseName="medicamentos_v2.db" onInit={inicializarBanco}>
       <Stack
-        initialRouteName="index"
         screenOptions={{ headerShown: false }}
       >
       </Stack>

@@ -1,10 +1,14 @@
-/**
- * Configuração centralizada da API
- * Altere o IP abaixo para o IP do seu servidor backend
- */
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-// SUBSTITUA PELO IP DO SEU SERVIDOR
-const API_BASE_URL = 'http://192.168.1.14:8080';
+// No Expo Go, a API roda no mesmo computador que serve o Metro.
+// EXPO_PUBLIC_API_URL permite usar um servidor separado ou um túnel da API.
+const metroHost = Constants.expoConfig?.hostUri;
+const host = Platform.OS === 'web' && typeof window !== 'undefined'
+  ? window.location.hostname
+  : metroHost ? new URL(`http://${metroHost}`).hostname
+  : Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+const API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || `http://${host}:8080`).replace(/\/+$/, '');
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,

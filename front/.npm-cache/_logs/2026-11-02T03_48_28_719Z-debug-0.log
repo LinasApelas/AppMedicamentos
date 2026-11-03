@@ -1,0 +1,1288 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Users\olive\AppData\Roaming\npm\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.18.0
+2 info using node@v22.19.0
+3 silly config load:file:C:\Users\olive\AppData\Roaming\npm\node_modules\npm\npmrc
+4 silly config load:file:D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\front\.npmrc
+5 silly config load:file:C:\Users\olive\.npmrc
+6 silly config load:file:C:\Users\olive\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm install
+8 verbose argv "install" "--fetch-retries" "0" "--fetch-timeout" "20000" "--cache" ".npm-cache"
+9 verbose logfile logs-max:10 dir:D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\front\.npm-cache\_logs\2026-11-02T03_48_28_719Z-
+10 verbose logfile D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\front\.npm-cache\_logs\2026-11-02T03_48_28_719Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:2197815296 maxSize:549453824 maxEntrySize:274726912
+13 http fetch GET https://registry.npmjs.org/npm attempt 1 failed with ENOTFOUND
+14 silly idealTree buildDeps
+15 silly fetch manifest @types/react@~19.3.0
+16 silly packumentCache full:https://registry.npmjs.org/@types%2freact cache-miss
+17 http fetch GET https://registry.npmjs.org/@types%2freact attempt 1 failed with ENOTFOUND
+18 silly fetch manifest eslint-config-expo@~58.0.4
+19 silly packumentCache full:https://registry.npmjs.org/eslint-config-expo cache-miss
+20 http fetch GET https://registry.npmjs.org/eslint-config-expo attempt 1 failed with ENOTFOUND
+21 silly fetch manifest typescript@~6.0.3
+22 silly packumentCache full:https://registry.npmjs.org/typescript cache-miss
+23 http fetch GET https://registry.npmjs.org/typescript attempt 1 failed with ENOTFOUND
+24 silly placeDep ROOT @types/react@ REPLACE for: appmedicamentos@1.0.0 want: ~19.3.0
+25 warn ERESOLVE overriding peer dependency {
+25 warn ERESOLVE   code: 'ERESOLVE',
+25 warn ERESOLVE   edge: {
+25 warn ERESOLVE     type: 'peerOptional',
+25 warn ERESOLVE     name: '@types/react',
+25 warn ERESOLVE     spec: '^19.1.1',
+25 warn ERESOLVE     from: {
+25 warn ERESOLVE       name: 'react-native',
+25 warn ERESOLVE       version: '0.88.1',
+25 warn ERESOLVE       location: 'node_modules/react-native',
+25 warn ERESOLVE       isWorkspace: false,
+25 warn ERESOLVE       dependents: [Array]
+25 warn ERESOLVE     }
+25 warn ERESOLVE   },
+25 warn ERESOLVE   dep: {
+25 warn ERESOLVE     name: '@types/react',
+25 warn ERESOLVE     version: undefined,
+25 warn ERESOLVE     errors: [ [FetchError] ],
+25 warn ERESOLVE     package: {},
+25 warn ERESOLVE     whileInstalling: {
+25 warn ERESOLVE       name: 'appmedicamentos',
+25 warn ERESOLVE       version: '1.0.0',
+25 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+25 warn ERESOLVE     },
+25 warn ERESOLVE     location: 'node_modules/@types/react',
+25 warn ERESOLVE     isWorkspace: false,
+25 warn ERESOLVE     dependents: [ [Object] ]
+25 warn ERESOLVE   },
+25 warn ERESOLVE   force: false,
+25 warn ERESOLVE   isMine: true,
+25 warn ERESOLVE   strictPeerDeps: false,
+25 warn ERESOLVE   current: {
+25 warn ERESOLVE     name: '@types/react',
+25 warn ERESOLVE     version: '19.1.17',
+25 warn ERESOLVE     location: 'node_modules/@types/react',
+25 warn ERESOLVE     isWorkspace: false,
+25 warn ERESOLVE     dependents: [
+25 warn ERESOLVE       [Object], [Object], [Object],
+25 warn ERESOLVE       [Object], [Object], [Object],
+25 warn ERESOLVE       [Object], [Object], [Object],
+25 warn ERESOLVE       [Object], [Object], [Object],
+25 warn ERESOLVE       [Object], [Object], [Object],
+25 warn ERESOLVE       [Object], [Object], [Object],
+25 warn ERESOLVE       [Object]
+25 warn ERESOLVE     ]
+25 warn ERESOLVE   }
+25 warn ERESOLVE }
+26 warn ERESOLVE overriding peer dependency {
+26 warn ERESOLVE   code: 'ERESOLVE',
+26 warn ERESOLVE   edge: {
+26 warn ERESOLVE     type: 'peerOptional',
+26 warn ERESOLVE     name: '@types/react',
+26 warn ERESOLVE     spec: '^19.1.1',
+26 warn ERESOLVE     from: {
+26 warn ERESOLVE       name: 'react-native',
+26 warn ERESOLVE       version: '0.88.1',
+26 warn ERESOLVE       location: 'node_modules/react-native',
+26 warn ERESOLVE       isWorkspace: false,
+26 warn ERESOLVE       dependents: [Array]
+26 warn ERESOLVE     }
+26 warn ERESOLVE   },
+26 warn ERESOLVE   dep: {
+26 warn ERESOLVE     name: '@types/react',
+26 warn ERESOLVE     version: undefined,
+26 warn ERESOLVE     errors: [ [FetchError] ],
+26 warn ERESOLVE     package: {},
+26 warn ERESOLVE     whileInstalling: {
+26 warn ERESOLVE       name: 'appmedicamentos',
+26 warn ERESOLVE       version: '1.0.0',
+26 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+26 warn ERESOLVE     },
+26 warn ERESOLVE     location: 'node_modules/@types/react',
+26 warn ERESOLVE     isWorkspace: false,
+26 warn ERESOLVE     dependents: [ [Object] ]
+26 warn ERESOLVE   },
+26 warn ERESOLVE   force: false,
+26 warn ERESOLVE   isMine: true,
+26 warn ERESOLVE   strictPeerDeps: false,
+26 warn ERESOLVE   current: {
+26 warn ERESOLVE     name: '@types/react',
+26 warn ERESOLVE     version: '19.1.17',
+26 warn ERESOLVE     location: 'node_modules/@types/react',
+26 warn ERESOLVE     isWorkspace: false,
+26 warn ERESOLVE     dependents: [
+26 warn ERESOLVE       [Object], [Object], [Object],
+26 warn ERESOLVE       [Object], [Object], [Object],
+26 warn ERESOLVE       [Object], [Object], [Object],
+26 warn ERESOLVE       [Object], [Object], [Object],
+26 warn ERESOLVE       [Object], [Object], [Object],
+26 warn ERESOLVE       [Object], [Object], [Object],
+26 warn ERESOLVE       [Object]
+26 warn ERESOLVE     ]
+26 warn ERESOLVE   }
+26 warn ERESOLVE }
+27 warn ERESOLVE overriding peer dependency {
+27 warn ERESOLVE   code: 'ERESOLVE',
+27 warn ERESOLVE   edge: {
+27 warn ERESOLVE     type: 'peerOptional',
+27 warn ERESOLVE     name: '@types/react',
+27 warn ERESOLVE     spec: '^19.1.1',
+27 warn ERESOLVE     from: {
+27 warn ERESOLVE       name: 'react-native',
+27 warn ERESOLVE       version: '0.88.1',
+27 warn ERESOLVE       location: 'node_modules/react-native',
+27 warn ERESOLVE       isWorkspace: false,
+27 warn ERESOLVE       dependents: [Array]
+27 warn ERESOLVE     }
+27 warn ERESOLVE   },
+27 warn ERESOLVE   dep: {
+27 warn ERESOLVE     name: '@types/react',
+27 warn ERESOLVE     version: undefined,
+27 warn ERESOLVE     errors: [ [FetchError] ],
+27 warn ERESOLVE     package: {},
+27 warn ERESOLVE     whileInstalling: {
+27 warn ERESOLVE       name: 'appmedicamentos',
+27 warn ERESOLVE       version: '1.0.0',
+27 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+27 warn ERESOLVE     },
+27 warn ERESOLVE     location: 'node_modules/@types/react',
+27 warn ERESOLVE     isWorkspace: false,
+27 warn ERESOLVE     dependents: [ [Object] ]
+27 warn ERESOLVE   },
+27 warn ERESOLVE   force: false,
+27 warn ERESOLVE   isMine: true,
+27 warn ERESOLVE   strictPeerDeps: false,
+27 warn ERESOLVE   current: {
+27 warn ERESOLVE     name: '@types/react',
+27 warn ERESOLVE     version: '19.1.17',
+27 warn ERESOLVE     location: 'node_modules/@types/react',
+27 warn ERESOLVE     isWorkspace: false,
+27 warn ERESOLVE     dependents: [
+27 warn ERESOLVE       [Object], [Object], [Object],
+27 warn ERESOLVE       [Object], [Object], [Object],
+27 warn ERESOLVE       [Object], [Object], [Object],
+27 warn ERESOLVE       [Object], [Object], [Object],
+27 warn ERESOLVE       [Object], [Object], [Object],
+27 warn ERESOLVE       [Object], [Object], [Object],
+27 warn ERESOLVE       [Object]
+27 warn ERESOLVE     ]
+27 warn ERESOLVE   }
+27 warn ERESOLVE }
+28 warn ERESOLVE overriding peer dependency {
+28 warn ERESOLVE   code: 'ERESOLVE',
+28 warn ERESOLVE   edge: {
+28 warn ERESOLVE     type: 'peerOptional',
+28 warn ERESOLVE     name: '@types/react',
+28 warn ERESOLVE     spec: '^19.1.1',
+28 warn ERESOLVE     from: {
+28 warn ERESOLVE       name: 'react-native',
+28 warn ERESOLVE       version: '0.88.1',
+28 warn ERESOLVE       location: 'node_modules/react-native',
+28 warn ERESOLVE       isWorkspace: false,
+28 warn ERESOLVE       dependents: [Array]
+28 warn ERESOLVE     }
+28 warn ERESOLVE   },
+28 warn ERESOLVE   dep: {
+28 warn ERESOLVE     name: '@types/react',
+28 warn ERESOLVE     version: undefined,
+28 warn ERESOLVE     errors: [ [FetchError] ],
+28 warn ERESOLVE     package: {},
+28 warn ERESOLVE     whileInstalling: {
+28 warn ERESOLVE       name: 'appmedicamentos',
+28 warn ERESOLVE       version: '1.0.0',
+28 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+28 warn ERESOLVE     },
+28 warn ERESOLVE     location: 'node_modules/@types/react',
+28 warn ERESOLVE     isWorkspace: false,
+28 warn ERESOLVE     dependents: [ [Object] ]
+28 warn ERESOLVE   },
+28 warn ERESOLVE   force: false,
+28 warn ERESOLVE   isMine: true,
+28 warn ERESOLVE   strictPeerDeps: false,
+28 warn ERESOLVE   current: {
+28 warn ERESOLVE     name: '@types/react',
+28 warn ERESOLVE     version: '19.1.17',
+28 warn ERESOLVE     location: 'node_modules/@types/react',
+28 warn ERESOLVE     isWorkspace: false,
+28 warn ERESOLVE     dependents: [
+28 warn ERESOLVE       [Object], [Object], [Object],
+28 warn ERESOLVE       [Object], [Object], [Object],
+28 warn ERESOLVE       [Object], [Object], [Object],
+28 warn ERESOLVE       [Object], [Object], [Object],
+28 warn ERESOLVE       [Object], [Object], [Object],
+28 warn ERESOLVE       [Object], [Object], [Object],
+28 warn ERESOLVE       [Object]
+28 warn ERESOLVE     ]
+28 warn ERESOLVE   }
+28 warn ERESOLVE }
+29 warn ERESOLVE overriding peer dependency {
+29 warn ERESOLVE   code: 'ERESOLVE',
+29 warn ERESOLVE   edge: {
+29 warn ERESOLVE     type: 'peerOptional',
+29 warn ERESOLVE     name: '@types/react',
+29 warn ERESOLVE     spec: '^19.1.1',
+29 warn ERESOLVE     from: {
+29 warn ERESOLVE       name: 'react-native',
+29 warn ERESOLVE       version: '0.88.1',
+29 warn ERESOLVE       location: 'node_modules/react-native',
+29 warn ERESOLVE       isWorkspace: false,
+29 warn ERESOLVE       dependents: [Array]
+29 warn ERESOLVE     }
+29 warn ERESOLVE   },
+29 warn ERESOLVE   dep: {
+29 warn ERESOLVE     name: '@types/react',
+29 warn ERESOLVE     version: undefined,
+29 warn ERESOLVE     errors: [ [FetchError] ],
+29 warn ERESOLVE     package: {},
+29 warn ERESOLVE     whileInstalling: {
+29 warn ERESOLVE       name: 'appmedicamentos',
+29 warn ERESOLVE       version: '1.0.0',
+29 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+29 warn ERESOLVE     },
+29 warn ERESOLVE     location: 'node_modules/@types/react',
+29 warn ERESOLVE     isWorkspace: false,
+29 warn ERESOLVE     dependents: [ [Object] ]
+29 warn ERESOLVE   },
+29 warn ERESOLVE   force: false,
+29 warn ERESOLVE   isMine: true,
+29 warn ERESOLVE   strictPeerDeps: false,
+29 warn ERESOLVE   current: {
+29 warn ERESOLVE     name: '@types/react',
+29 warn ERESOLVE     version: '19.1.17',
+29 warn ERESOLVE     location: 'node_modules/@types/react',
+29 warn ERESOLVE     isWorkspace: false,
+29 warn ERESOLVE     dependents: [
+29 warn ERESOLVE       [Object], [Object], [Object],
+29 warn ERESOLVE       [Object], [Object], [Object],
+29 warn ERESOLVE       [Object], [Object], [Object],
+29 warn ERESOLVE       [Object], [Object], [Object],
+29 warn ERESOLVE       [Object], [Object], [Object],
+29 warn ERESOLVE       [Object], [Object], [Object],
+29 warn ERESOLVE       [Object]
+29 warn ERESOLVE     ]
+29 warn ERESOLVE   }
+29 warn ERESOLVE }
+30 warn ERESOLVE overriding peer dependency {
+30 warn ERESOLVE   code: 'ERESOLVE',
+30 warn ERESOLVE   edge: {
+30 warn ERESOLVE     type: 'peerOptional',
+30 warn ERESOLVE     name: '@types/react',
+30 warn ERESOLVE     spec: '^19.1.1',
+30 warn ERESOLVE     from: {
+30 warn ERESOLVE       name: 'react-native',
+30 warn ERESOLVE       version: '0.88.1',
+30 warn ERESOLVE       location: 'node_modules/react-native',
+30 warn ERESOLVE       isWorkspace: false,
+30 warn ERESOLVE       dependents: [Array]
+30 warn ERESOLVE     }
+30 warn ERESOLVE   },
+30 warn ERESOLVE   dep: {
+30 warn ERESOLVE     name: '@types/react',
+30 warn ERESOLVE     version: undefined,
+30 warn ERESOLVE     errors: [ [FetchError] ],
+30 warn ERESOLVE     package: {},
+30 warn ERESOLVE     whileInstalling: {
+30 warn ERESOLVE       name: 'appmedicamentos',
+30 warn ERESOLVE       version: '1.0.0',
+30 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+30 warn ERESOLVE     },
+30 warn ERESOLVE     location: 'node_modules/@types/react',
+30 warn ERESOLVE     isWorkspace: false,
+30 warn ERESOLVE     dependents: [ [Object] ]
+30 warn ERESOLVE   },
+30 warn ERESOLVE   force: false,
+30 warn ERESOLVE   isMine: true,
+30 warn ERESOLVE   strictPeerDeps: false,
+30 warn ERESOLVE   current: {
+30 warn ERESOLVE     name: '@types/react',
+30 warn ERESOLVE     version: '19.1.17',
+30 warn ERESOLVE     location: 'node_modules/@types/react',
+30 warn ERESOLVE     isWorkspace: false,
+30 warn ERESOLVE     dependents: [
+30 warn ERESOLVE       [Object], [Object], [Object],
+30 warn ERESOLVE       [Object], [Object], [Object],
+30 warn ERESOLVE       [Object], [Object], [Object],
+30 warn ERESOLVE       [Object], [Object], [Object],
+30 warn ERESOLVE       [Object], [Object], [Object],
+30 warn ERESOLVE       [Object], [Object], [Object],
+30 warn ERESOLVE       [Object]
+30 warn ERESOLVE     ]
+30 warn ERESOLVE   }
+30 warn ERESOLVE }
+31 warn ERESOLVE overriding peer dependency {
+31 warn ERESOLVE   code: 'ERESOLVE',
+31 warn ERESOLVE   edge: {
+31 warn ERESOLVE     type: 'peerOptional',
+31 warn ERESOLVE     name: '@types/react',
+31 warn ERESOLVE     spec: '^19.1.1',
+31 warn ERESOLVE     from: {
+31 warn ERESOLVE       name: 'react-native',
+31 warn ERESOLVE       version: '0.88.1',
+31 warn ERESOLVE       location: 'node_modules/react-native',
+31 warn ERESOLVE       isWorkspace: false,
+31 warn ERESOLVE       dependents: [Array]
+31 warn ERESOLVE     }
+31 warn ERESOLVE   },
+31 warn ERESOLVE   dep: {
+31 warn ERESOLVE     name: '@types/react',
+31 warn ERESOLVE     version: undefined,
+31 warn ERESOLVE     errors: [ [FetchError] ],
+31 warn ERESOLVE     package: {},
+31 warn ERESOLVE     whileInstalling: {
+31 warn ERESOLVE       name: 'appmedicamentos',
+31 warn ERESOLVE       version: '1.0.0',
+31 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+31 warn ERESOLVE     },
+31 warn ERESOLVE     location: 'node_modules/@types/react',
+31 warn ERESOLVE     isWorkspace: false,
+31 warn ERESOLVE     dependents: [ [Object] ]
+31 warn ERESOLVE   },
+31 warn ERESOLVE   force: false,
+31 warn ERESOLVE   isMine: true,
+31 warn ERESOLVE   strictPeerDeps: false,
+31 warn ERESOLVE   current: {
+31 warn ERESOLVE     name: '@types/react',
+31 warn ERESOLVE     version: '19.1.17',
+31 warn ERESOLVE     location: 'node_modules/@types/react',
+31 warn ERESOLVE     isWorkspace: false,
+31 warn ERESOLVE     dependents: [
+31 warn ERESOLVE       [Object], [Object], [Object],
+31 warn ERESOLVE       [Object], [Object], [Object],
+31 warn ERESOLVE       [Object], [Object], [Object],
+31 warn ERESOLVE       [Object], [Object], [Object],
+31 warn ERESOLVE       [Object], [Object], [Object],
+31 warn ERESOLVE       [Object], [Object], [Object],
+31 warn ERESOLVE       [Object]
+31 warn ERESOLVE     ]
+31 warn ERESOLVE   }
+31 warn ERESOLVE }
+32 warn ERESOLVE overriding peer dependency {
+32 warn ERESOLVE   code: 'ERESOLVE',
+32 warn ERESOLVE   edge: {
+32 warn ERESOLVE     type: 'peerOptional',
+32 warn ERESOLVE     name: '@types/react',
+32 warn ERESOLVE     spec: '^19.1.1',
+32 warn ERESOLVE     from: {
+32 warn ERESOLVE       name: 'react-native',
+32 warn ERESOLVE       version: '0.88.1',
+32 warn ERESOLVE       location: 'node_modules/react-native',
+32 warn ERESOLVE       isWorkspace: false,
+32 warn ERESOLVE       dependents: [Array]
+32 warn ERESOLVE     }
+32 warn ERESOLVE   },
+32 warn ERESOLVE   dep: {
+32 warn ERESOLVE     name: '@types/react',
+32 warn ERESOLVE     version: undefined,
+32 warn ERESOLVE     errors: [ [FetchError] ],
+32 warn ERESOLVE     package: {},
+32 warn ERESOLVE     whileInstalling: {
+32 warn ERESOLVE       name: 'appmedicamentos',
+32 warn ERESOLVE       version: '1.0.0',
+32 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+32 warn ERESOLVE     },
+32 warn ERESOLVE     location: 'node_modules/@types/react',
+32 warn ERESOLVE     isWorkspace: false,
+32 warn ERESOLVE     dependents: [ [Object] ]
+32 warn ERESOLVE   },
+32 warn ERESOLVE   force: false,
+32 warn ERESOLVE   isMine: true,
+32 warn ERESOLVE   strictPeerDeps: false,
+32 warn ERESOLVE   current: {
+32 warn ERESOLVE     name: '@types/react',
+32 warn ERESOLVE     version: '19.1.17',
+32 warn ERESOLVE     location: 'node_modules/@types/react',
+32 warn ERESOLVE     isWorkspace: false,
+32 warn ERESOLVE     dependents: [
+32 warn ERESOLVE       [Object], [Object], [Object],
+32 warn ERESOLVE       [Object], [Object], [Object],
+32 warn ERESOLVE       [Object], [Object], [Object],
+32 warn ERESOLVE       [Object], [Object], [Object],
+32 warn ERESOLVE       [Object], [Object], [Object],
+32 warn ERESOLVE       [Object], [Object], [Object],
+32 warn ERESOLVE       [Object]
+32 warn ERESOLVE     ]
+32 warn ERESOLVE   }
+32 warn ERESOLVE }
+33 warn ERESOLVE overriding peer dependency {
+33 warn ERESOLVE   code: 'ERESOLVE',
+33 warn ERESOLVE   edge: {
+33 warn ERESOLVE     type: 'peerOptional',
+33 warn ERESOLVE     name: '@types/react',
+33 warn ERESOLVE     spec: '^19.1.1',
+33 warn ERESOLVE     from: {
+33 warn ERESOLVE       name: 'react-native',
+33 warn ERESOLVE       version: '0.88.1',
+33 warn ERESOLVE       location: 'node_modules/react-native',
+33 warn ERESOLVE       isWorkspace: false,
+33 warn ERESOLVE       dependents: [Array]
+33 warn ERESOLVE     }
+33 warn ERESOLVE   },
+33 warn ERESOLVE   dep: {
+33 warn ERESOLVE     name: '@types/react',
+33 warn ERESOLVE     version: undefined,
+33 warn ERESOLVE     errors: [ [FetchError] ],
+33 warn ERESOLVE     package: {},
+33 warn ERESOLVE     whileInstalling: {
+33 warn ERESOLVE       name: 'appmedicamentos',
+33 warn ERESOLVE       version: '1.0.0',
+33 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+33 warn ERESOLVE     },
+33 warn ERESOLVE     location: 'node_modules/@types/react',
+33 warn ERESOLVE     isWorkspace: false,
+33 warn ERESOLVE     dependents: [ [Object] ]
+33 warn ERESOLVE   },
+33 warn ERESOLVE   force: false,
+33 warn ERESOLVE   isMine: true,
+33 warn ERESOLVE   strictPeerDeps: false,
+33 warn ERESOLVE   current: {
+33 warn ERESOLVE     name: '@types/react',
+33 warn ERESOLVE     version: '19.1.17',
+33 warn ERESOLVE     location: 'node_modules/@types/react',
+33 warn ERESOLVE     isWorkspace: false,
+33 warn ERESOLVE     dependents: [
+33 warn ERESOLVE       [Object], [Object], [Object],
+33 warn ERESOLVE       [Object], [Object], [Object],
+33 warn ERESOLVE       [Object], [Object], [Object],
+33 warn ERESOLVE       [Object], [Object], [Object],
+33 warn ERESOLVE       [Object], [Object], [Object],
+33 warn ERESOLVE       [Object], [Object], [Object],
+33 warn ERESOLVE       [Object]
+33 warn ERESOLVE     ]
+33 warn ERESOLVE   }
+33 warn ERESOLVE }
+34 warn ERESOLVE overriding peer dependency {
+34 warn ERESOLVE   code: 'ERESOLVE',
+34 warn ERESOLVE   edge: {
+34 warn ERESOLVE     type: 'peerOptional',
+34 warn ERESOLVE     name: '@types/react',
+34 warn ERESOLVE     spec: '^19.1.1',
+34 warn ERESOLVE     from: {
+34 warn ERESOLVE       name: 'react-native',
+34 warn ERESOLVE       version: '0.88.1',
+34 warn ERESOLVE       location: 'node_modules/react-native',
+34 warn ERESOLVE       isWorkspace: false,
+34 warn ERESOLVE       dependents: [Array]
+34 warn ERESOLVE     }
+34 warn ERESOLVE   },
+34 warn ERESOLVE   dep: {
+34 warn ERESOLVE     name: '@types/react',
+34 warn ERESOLVE     version: undefined,
+34 warn ERESOLVE     errors: [ [FetchError] ],
+34 warn ERESOLVE     package: {},
+34 warn ERESOLVE     whileInstalling: {
+34 warn ERESOLVE       name: 'appmedicamentos',
+34 warn ERESOLVE       version: '1.0.0',
+34 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+34 warn ERESOLVE     },
+34 warn ERESOLVE     location: 'node_modules/@types/react',
+34 warn ERESOLVE     isWorkspace: false,
+34 warn ERESOLVE     dependents: [ [Object] ]
+34 warn ERESOLVE   },
+34 warn ERESOLVE   force: false,
+34 warn ERESOLVE   isMine: true,
+34 warn ERESOLVE   strictPeerDeps: false,
+34 warn ERESOLVE   current: {
+34 warn ERESOLVE     name: '@types/react',
+34 warn ERESOLVE     version: '19.1.17',
+34 warn ERESOLVE     location: 'node_modules/@types/react',
+34 warn ERESOLVE     isWorkspace: false,
+34 warn ERESOLVE     dependents: [
+34 warn ERESOLVE       [Object], [Object], [Object],
+34 warn ERESOLVE       [Object], [Object], [Object],
+34 warn ERESOLVE       [Object], [Object], [Object],
+34 warn ERESOLVE       [Object], [Object], [Object],
+34 warn ERESOLVE       [Object], [Object], [Object],
+34 warn ERESOLVE       [Object], [Object], [Object],
+34 warn ERESOLVE       [Object]
+34 warn ERESOLVE     ]
+34 warn ERESOLVE   }
+34 warn ERESOLVE }
+35 warn ERESOLVE overriding peer dependency {
+35 warn ERESOLVE   code: 'ERESOLVE',
+35 warn ERESOLVE   edge: {
+35 warn ERESOLVE     type: 'peerOptional',
+35 warn ERESOLVE     name: '@types/react',
+35 warn ERESOLVE     spec: '^19.1.1',
+35 warn ERESOLVE     from: {
+35 warn ERESOLVE       name: 'react-native',
+35 warn ERESOLVE       version: '0.88.1',
+35 warn ERESOLVE       location: 'node_modules/react-native',
+35 warn ERESOLVE       isWorkspace: false,
+35 warn ERESOLVE       dependents: [Array]
+35 warn ERESOLVE     }
+35 warn ERESOLVE   },
+35 warn ERESOLVE   dep: {
+35 warn ERESOLVE     name: '@types/react',
+35 warn ERESOLVE     version: undefined,
+35 warn ERESOLVE     errors: [ [FetchError] ],
+35 warn ERESOLVE     package: {},
+35 warn ERESOLVE     whileInstalling: {
+35 warn ERESOLVE       name: 'appmedicamentos',
+35 warn ERESOLVE       version: '1.0.0',
+35 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+35 warn ERESOLVE     },
+35 warn ERESOLVE     location: 'node_modules/@types/react',
+35 warn ERESOLVE     isWorkspace: false,
+35 warn ERESOLVE     dependents: [ [Object] ]
+35 warn ERESOLVE   },
+35 warn ERESOLVE   force: false,
+35 warn ERESOLVE   isMine: true,
+35 warn ERESOLVE   strictPeerDeps: false,
+35 warn ERESOLVE   current: {
+35 warn ERESOLVE     name: '@types/react',
+35 warn ERESOLVE     version: '19.1.17',
+35 warn ERESOLVE     location: 'node_modules/@types/react',
+35 warn ERESOLVE     isWorkspace: false,
+35 warn ERESOLVE     dependents: [
+35 warn ERESOLVE       [Object], [Object], [Object],
+35 warn ERESOLVE       [Object], [Object], [Object],
+35 warn ERESOLVE       [Object], [Object], [Object],
+35 warn ERESOLVE       [Object], [Object], [Object],
+35 warn ERESOLVE       [Object], [Object], [Object],
+35 warn ERESOLVE       [Object], [Object], [Object],
+35 warn ERESOLVE       [Object]
+35 warn ERESOLVE     ]
+35 warn ERESOLVE   }
+35 warn ERESOLVE }
+36 warn ERESOLVE overriding peer dependency {
+36 warn ERESOLVE   code: 'ERESOLVE',
+36 warn ERESOLVE   edge: {
+36 warn ERESOLVE     type: 'peerOptional',
+36 warn ERESOLVE     name: '@types/react',
+36 warn ERESOLVE     spec: '^19.1.1',
+36 warn ERESOLVE     from: {
+36 warn ERESOLVE       name: 'react-native',
+36 warn ERESOLVE       version: '0.88.1',
+36 warn ERESOLVE       location: 'node_modules/react-native',
+36 warn ERESOLVE       isWorkspace: false,
+36 warn ERESOLVE       dependents: [Array]
+36 warn ERESOLVE     }
+36 warn ERESOLVE   },
+36 warn ERESOLVE   dep: {
+36 warn ERESOLVE     name: '@types/react',
+36 warn ERESOLVE     version: undefined,
+36 warn ERESOLVE     errors: [ [FetchError] ],
+36 warn ERESOLVE     package: {},
+36 warn ERESOLVE     whileInstalling: {
+36 warn ERESOLVE       name: 'appmedicamentos',
+36 warn ERESOLVE       version: '1.0.0',
+36 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+36 warn ERESOLVE     },
+36 warn ERESOLVE     location: 'node_modules/@types/react',
+36 warn ERESOLVE     isWorkspace: false,
+36 warn ERESOLVE     dependents: [ [Object] ]
+36 warn ERESOLVE   },
+36 warn ERESOLVE   force: false,
+36 warn ERESOLVE   isMine: true,
+36 warn ERESOLVE   strictPeerDeps: false,
+36 warn ERESOLVE   current: {
+36 warn ERESOLVE     name: '@types/react',
+36 warn ERESOLVE     version: '19.1.17',
+36 warn ERESOLVE     location: 'node_modules/@types/react',
+36 warn ERESOLVE     isWorkspace: false,
+36 warn ERESOLVE     dependents: [
+36 warn ERESOLVE       [Object], [Object], [Object],
+36 warn ERESOLVE       [Object], [Object], [Object],
+36 warn ERESOLVE       [Object], [Object], [Object],
+36 warn ERESOLVE       [Object], [Object], [Object],
+36 warn ERESOLVE       [Object], [Object], [Object],
+36 warn ERESOLVE       [Object], [Object], [Object],
+36 warn ERESOLVE       [Object]
+36 warn ERESOLVE     ]
+36 warn ERESOLVE   }
+36 warn ERESOLVE }
+37 warn ERESOLVE overriding peer dependency {
+37 warn ERESOLVE   code: 'ERESOLVE',
+37 warn ERESOLVE   edge: {
+37 warn ERESOLVE     type: 'peerOptional',
+37 warn ERESOLVE     name: '@types/react',
+37 warn ERESOLVE     spec: '^19.1.1',
+37 warn ERESOLVE     from: {
+37 warn ERESOLVE       name: 'react-native',
+37 warn ERESOLVE       version: '0.88.1',
+37 warn ERESOLVE       location: 'node_modules/react-native',
+37 warn ERESOLVE       isWorkspace: false,
+37 warn ERESOLVE       dependents: [Array]
+37 warn ERESOLVE     }
+37 warn ERESOLVE   },
+37 warn ERESOLVE   dep: {
+37 warn ERESOLVE     name: '@types/react',
+37 warn ERESOLVE     version: undefined,
+37 warn ERESOLVE     errors: [ [FetchError] ],
+37 warn ERESOLVE     package: {},
+37 warn ERESOLVE     whileInstalling: {
+37 warn ERESOLVE       name: 'appmedicamentos',
+37 warn ERESOLVE       version: '1.0.0',
+37 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+37 warn ERESOLVE     },
+37 warn ERESOLVE     location: 'node_modules/@types/react',
+37 warn ERESOLVE     isWorkspace: false,
+37 warn ERESOLVE     dependents: [ [Object] ]
+37 warn ERESOLVE   },
+37 warn ERESOLVE   force: false,
+37 warn ERESOLVE   isMine: true,
+37 warn ERESOLVE   strictPeerDeps: false,
+37 warn ERESOLVE   current: {
+37 warn ERESOLVE     name: '@types/react',
+37 warn ERESOLVE     version: '19.1.17',
+37 warn ERESOLVE     location: 'node_modules/@types/react',
+37 warn ERESOLVE     isWorkspace: false,
+37 warn ERESOLVE     dependents: [
+37 warn ERESOLVE       [Object], [Object], [Object],
+37 warn ERESOLVE       [Object], [Object], [Object],
+37 warn ERESOLVE       [Object], [Object], [Object],
+37 warn ERESOLVE       [Object], [Object], [Object],
+37 warn ERESOLVE       [Object], [Object], [Object],
+37 warn ERESOLVE       [Object], [Object], [Object],
+37 warn ERESOLVE       [Object]
+37 warn ERESOLVE     ]
+37 warn ERESOLVE   }
+37 warn ERESOLVE }
+38 warn ERESOLVE overriding peer dependency {
+38 warn ERESOLVE   code: 'ERESOLVE',
+38 warn ERESOLVE   edge: {
+38 warn ERESOLVE     type: 'peerOptional',
+38 warn ERESOLVE     name: '@types/react',
+38 warn ERESOLVE     spec: '^19.1.1',
+38 warn ERESOLVE     from: {
+38 warn ERESOLVE       name: 'react-native',
+38 warn ERESOLVE       version: '0.88.1',
+38 warn ERESOLVE       location: 'node_modules/react-native',
+38 warn ERESOLVE       isWorkspace: false,
+38 warn ERESOLVE       dependents: [Array]
+38 warn ERESOLVE     }
+38 warn ERESOLVE   },
+38 warn ERESOLVE   dep: {
+38 warn ERESOLVE     name: '@types/react',
+38 warn ERESOLVE     version: undefined,
+38 warn ERESOLVE     errors: [ [FetchError] ],
+38 warn ERESOLVE     package: {},
+38 warn ERESOLVE     whileInstalling: {
+38 warn ERESOLVE       name: 'appmedicamentos',
+38 warn ERESOLVE       version: '1.0.0',
+38 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+38 warn ERESOLVE     },
+38 warn ERESOLVE     location: 'node_modules/@types/react',
+38 warn ERESOLVE     isWorkspace: false,
+38 warn ERESOLVE     dependents: [ [Object] ]
+38 warn ERESOLVE   },
+38 warn ERESOLVE   force: false,
+38 warn ERESOLVE   isMine: true,
+38 warn ERESOLVE   strictPeerDeps: false,
+38 warn ERESOLVE   current: {
+38 warn ERESOLVE     name: '@types/react',
+38 warn ERESOLVE     version: '19.1.17',
+38 warn ERESOLVE     location: 'node_modules/@types/react',
+38 warn ERESOLVE     isWorkspace: false,
+38 warn ERESOLVE     dependents: [
+38 warn ERESOLVE       [Object], [Object], [Object],
+38 warn ERESOLVE       [Object], [Object], [Object],
+38 warn ERESOLVE       [Object], [Object], [Object],
+38 warn ERESOLVE       [Object], [Object], [Object],
+38 warn ERESOLVE       [Object], [Object], [Object],
+38 warn ERESOLVE       [Object], [Object], [Object],
+38 warn ERESOLVE       [Object]
+38 warn ERESOLVE     ]
+38 warn ERESOLVE   }
+38 warn ERESOLVE }
+39 warn ERESOLVE overriding peer dependency {
+39 warn ERESOLVE   code: 'ERESOLVE',
+39 warn ERESOLVE   edge: {
+39 warn ERESOLVE     type: 'peerOptional',
+39 warn ERESOLVE     name: '@types/react',
+39 warn ERESOLVE     spec: '^19.1.1',
+39 warn ERESOLVE     from: {
+39 warn ERESOLVE       name: 'react-native',
+39 warn ERESOLVE       version: '0.88.1',
+39 warn ERESOLVE       location: 'node_modules/react-native',
+39 warn ERESOLVE       isWorkspace: false,
+39 warn ERESOLVE       dependents: [Array]
+39 warn ERESOLVE     }
+39 warn ERESOLVE   },
+39 warn ERESOLVE   dep: {
+39 warn ERESOLVE     name: '@types/react',
+39 warn ERESOLVE     version: undefined,
+39 warn ERESOLVE     errors: [ [FetchError] ],
+39 warn ERESOLVE     package: {},
+39 warn ERESOLVE     whileInstalling: {
+39 warn ERESOLVE       name: 'appmedicamentos',
+39 warn ERESOLVE       version: '1.0.0',
+39 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+39 warn ERESOLVE     },
+39 warn ERESOLVE     location: 'node_modules/@types/react',
+39 warn ERESOLVE     isWorkspace: false,
+39 warn ERESOLVE     dependents: [ [Object] ]
+39 warn ERESOLVE   },
+39 warn ERESOLVE   force: false,
+39 warn ERESOLVE   isMine: true,
+39 warn ERESOLVE   strictPeerDeps: false,
+39 warn ERESOLVE   current: {
+39 warn ERESOLVE     name: '@types/react',
+39 warn ERESOLVE     version: '19.1.17',
+39 warn ERESOLVE     location: 'node_modules/@types/react',
+39 warn ERESOLVE     isWorkspace: false,
+39 warn ERESOLVE     dependents: [
+39 warn ERESOLVE       [Object], [Object], [Object],
+39 warn ERESOLVE       [Object], [Object], [Object],
+39 warn ERESOLVE       [Object], [Object], [Object],
+39 warn ERESOLVE       [Object], [Object], [Object],
+39 warn ERESOLVE       [Object], [Object], [Object],
+39 warn ERESOLVE       [Object], [Object], [Object],
+39 warn ERESOLVE       [Object]
+39 warn ERESOLVE     ]
+39 warn ERESOLVE   }
+39 warn ERESOLVE }
+40 warn ERESOLVE overriding peer dependency {
+40 warn ERESOLVE   code: 'ERESOLVE',
+40 warn ERESOLVE   edge: {
+40 warn ERESOLVE     type: 'peerOptional',
+40 warn ERESOLVE     name: '@types/react',
+40 warn ERESOLVE     spec: '^19.1.1',
+40 warn ERESOLVE     from: {
+40 warn ERESOLVE       name: 'react-native',
+40 warn ERESOLVE       version: '0.88.1',
+40 warn ERESOLVE       location: 'node_modules/react-native',
+40 warn ERESOLVE       isWorkspace: false,
+40 warn ERESOLVE       dependents: [Array]
+40 warn ERESOLVE     }
+40 warn ERESOLVE   },
+40 warn ERESOLVE   dep: {
+40 warn ERESOLVE     name: '@types/react',
+40 warn ERESOLVE     version: undefined,
+40 warn ERESOLVE     errors: [ [FetchError] ],
+40 warn ERESOLVE     package: {},
+40 warn ERESOLVE     whileInstalling: {
+40 warn ERESOLVE       name: 'appmedicamentos',
+40 warn ERESOLVE       version: '1.0.0',
+40 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+40 warn ERESOLVE     },
+40 warn ERESOLVE     location: 'node_modules/@types/react',
+40 warn ERESOLVE     isWorkspace: false,
+40 warn ERESOLVE     dependents: [ [Object] ]
+40 warn ERESOLVE   },
+40 warn ERESOLVE   force: false,
+40 warn ERESOLVE   isMine: true,
+40 warn ERESOLVE   strictPeerDeps: false,
+40 warn ERESOLVE   current: {
+40 warn ERESOLVE     name: '@types/react',
+40 warn ERESOLVE     version: '19.1.17',
+40 warn ERESOLVE     location: 'node_modules/@types/react',
+40 warn ERESOLVE     isWorkspace: false,
+40 warn ERESOLVE     dependents: [
+40 warn ERESOLVE       [Object], [Object], [Object],
+40 warn ERESOLVE       [Object], [Object], [Object],
+40 warn ERESOLVE       [Object], [Object], [Object],
+40 warn ERESOLVE       [Object], [Object], [Object],
+40 warn ERESOLVE       [Object], [Object], [Object],
+40 warn ERESOLVE       [Object], [Object], [Object],
+40 warn ERESOLVE       [Object]
+40 warn ERESOLVE     ]
+40 warn ERESOLVE   }
+40 warn ERESOLVE }
+41 warn ERESOLVE overriding peer dependency {
+41 warn ERESOLVE   code: 'ERESOLVE',
+41 warn ERESOLVE   edge: {
+41 warn ERESOLVE     type: 'peerOptional',
+41 warn ERESOLVE     name: '@types/react',
+41 warn ERESOLVE     spec: '^19.1.1',
+41 warn ERESOLVE     from: {
+41 warn ERESOLVE       name: 'react-native',
+41 warn ERESOLVE       version: '0.88.1',
+41 warn ERESOLVE       location: 'node_modules/react-native',
+41 warn ERESOLVE       isWorkspace: false,
+41 warn ERESOLVE       dependents: [Array]
+41 warn ERESOLVE     }
+41 warn ERESOLVE   },
+41 warn ERESOLVE   dep: {
+41 warn ERESOLVE     name: '@types/react',
+41 warn ERESOLVE     version: undefined,
+41 warn ERESOLVE     errors: [ [FetchError] ],
+41 warn ERESOLVE     package: {},
+41 warn ERESOLVE     whileInstalling: {
+41 warn ERESOLVE       name: 'appmedicamentos',
+41 warn ERESOLVE       version: '1.0.0',
+41 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+41 warn ERESOLVE     },
+41 warn ERESOLVE     location: 'node_modules/@types/react',
+41 warn ERESOLVE     isWorkspace: false,
+41 warn ERESOLVE     dependents: [ [Object] ]
+41 warn ERESOLVE   },
+41 warn ERESOLVE   force: false,
+41 warn ERESOLVE   isMine: true,
+41 warn ERESOLVE   strictPeerDeps: false,
+41 warn ERESOLVE   current: {
+41 warn ERESOLVE     name: '@types/react',
+41 warn ERESOLVE     version: '19.1.17',
+41 warn ERESOLVE     location: 'node_modules/@types/react',
+41 warn ERESOLVE     isWorkspace: false,
+41 warn ERESOLVE     dependents: [
+41 warn ERESOLVE       [Object], [Object], [Object],
+41 warn ERESOLVE       [Object], [Object], [Object],
+41 warn ERESOLVE       [Object], [Object], [Object],
+41 warn ERESOLVE       [Object], [Object], [Object],
+41 warn ERESOLVE       [Object], [Object], [Object],
+41 warn ERESOLVE       [Object], [Object], [Object],
+41 warn ERESOLVE       [Object]
+41 warn ERESOLVE     ]
+41 warn ERESOLVE   }
+41 warn ERESOLVE }
+42 warn ERESOLVE overriding peer dependency {
+42 warn ERESOLVE   code: 'ERESOLVE',
+42 warn ERESOLVE   edge: {
+42 warn ERESOLVE     type: 'peerOptional',
+42 warn ERESOLVE     name: '@types/react',
+42 warn ERESOLVE     spec: '^19.1.1',
+42 warn ERESOLVE     from: {
+42 warn ERESOLVE       name: 'react-native',
+42 warn ERESOLVE       version: '0.88.1',
+42 warn ERESOLVE       location: 'node_modules/react-native',
+42 warn ERESOLVE       isWorkspace: false,
+42 warn ERESOLVE       dependents: [Array]
+42 warn ERESOLVE     }
+42 warn ERESOLVE   },
+42 warn ERESOLVE   dep: {
+42 warn ERESOLVE     name: '@types/react',
+42 warn ERESOLVE     version: undefined,
+42 warn ERESOLVE     errors: [ [FetchError] ],
+42 warn ERESOLVE     package: {},
+42 warn ERESOLVE     whileInstalling: {
+42 warn ERESOLVE       name: 'appmedicamentos',
+42 warn ERESOLVE       version: '1.0.0',
+42 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+42 warn ERESOLVE     },
+42 warn ERESOLVE     location: 'node_modules/@types/react',
+42 warn ERESOLVE     isWorkspace: false,
+42 warn ERESOLVE     dependents: [ [Object] ]
+42 warn ERESOLVE   },
+42 warn ERESOLVE   force: false,
+42 warn ERESOLVE   isMine: true,
+42 warn ERESOLVE   strictPeerDeps: false,
+42 warn ERESOLVE   current: {
+42 warn ERESOLVE     name: '@types/react',
+42 warn ERESOLVE     version: '19.1.17',
+42 warn ERESOLVE     location: 'node_modules/@types/react',
+42 warn ERESOLVE     isWorkspace: false,
+42 warn ERESOLVE     dependents: [
+42 warn ERESOLVE       [Object], [Object], [Object],
+42 warn ERESOLVE       [Object], [Object], [Object],
+42 warn ERESOLVE       [Object], [Object], [Object],
+42 warn ERESOLVE       [Object], [Object], [Object],
+42 warn ERESOLVE       [Object], [Object], [Object],
+42 warn ERESOLVE       [Object], [Object], [Object],
+42 warn ERESOLVE       [Object]
+42 warn ERESOLVE     ]
+42 warn ERESOLVE   }
+42 warn ERESOLVE }
+43 warn ERESOLVE overriding peer dependency {
+43 warn ERESOLVE   code: 'ERESOLVE',
+43 warn ERESOLVE   edge: {
+43 warn ERESOLVE     type: 'peerOptional',
+43 warn ERESOLVE     name: '@types/react',
+43 warn ERESOLVE     spec: '^19.1.1',
+43 warn ERESOLVE     from: {
+43 warn ERESOLVE       name: 'react-native',
+43 warn ERESOLVE       version: '0.88.1',
+43 warn ERESOLVE       location: 'node_modules/react-native',
+43 warn ERESOLVE       isWorkspace: false,
+43 warn ERESOLVE       dependents: [Array]
+43 warn ERESOLVE     }
+43 warn ERESOLVE   },
+43 warn ERESOLVE   dep: {
+43 warn ERESOLVE     name: '@types/react',
+43 warn ERESOLVE     version: undefined,
+43 warn ERESOLVE     errors: [ [FetchError] ],
+43 warn ERESOLVE     package: {},
+43 warn ERESOLVE     whileInstalling: {
+43 warn ERESOLVE       name: 'appmedicamentos',
+43 warn ERESOLVE       version: '1.0.0',
+43 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+43 warn ERESOLVE     },
+43 warn ERESOLVE     location: 'node_modules/@types/react',
+43 warn ERESOLVE     isWorkspace: false,
+43 warn ERESOLVE     dependents: [ [Object] ]
+43 warn ERESOLVE   },
+43 warn ERESOLVE   force: false,
+43 warn ERESOLVE   isMine: true,
+43 warn ERESOLVE   strictPeerDeps: false,
+43 warn ERESOLVE   current: {
+43 warn ERESOLVE     name: '@types/react',
+43 warn ERESOLVE     version: '19.1.17',
+43 warn ERESOLVE     location: 'node_modules/@types/react',
+43 warn ERESOLVE     isWorkspace: false,
+43 warn ERESOLVE     dependents: [
+43 warn ERESOLVE       [Object], [Object], [Object],
+43 warn ERESOLVE       [Object], [Object], [Object],
+43 warn ERESOLVE       [Object], [Object], [Object],
+43 warn ERESOLVE       [Object], [Object], [Object],
+43 warn ERESOLVE       [Object], [Object], [Object],
+43 warn ERESOLVE       [Object], [Object], [Object],
+43 warn ERESOLVE       [Object]
+43 warn ERESOLVE     ]
+43 warn ERESOLVE   }
+43 warn ERESOLVE }
+44 warn ERESOLVE overriding peer dependency {
+44 warn ERESOLVE   code: 'ERESOLVE',
+44 warn ERESOLVE   edge: {
+44 warn ERESOLVE     type: 'peerOptional',
+44 warn ERESOLVE     name: '@types/react',
+44 warn ERESOLVE     spec: '^19.1.1',
+44 warn ERESOLVE     from: {
+44 warn ERESOLVE       name: 'react-native',
+44 warn ERESOLVE       version: '0.88.1',
+44 warn ERESOLVE       location: 'node_modules/react-native',
+44 warn ERESOLVE       isWorkspace: false,
+44 warn ERESOLVE       dependents: [Array]
+44 warn ERESOLVE     }
+44 warn ERESOLVE   },
+44 warn ERESOLVE   dep: {
+44 warn ERESOLVE     name: '@types/react',
+44 warn ERESOLVE     version: undefined,
+44 warn ERESOLVE     errors: [ [FetchError] ],
+44 warn ERESOLVE     package: {},
+44 warn ERESOLVE     whileInstalling: {
+44 warn ERESOLVE       name: 'appmedicamentos',
+44 warn ERESOLVE       version: '1.0.0',
+44 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+44 warn ERESOLVE     },
+44 warn ERESOLVE     location: 'node_modules/@types/react',
+44 warn ERESOLVE     isWorkspace: false,
+44 warn ERESOLVE     dependents: [ [Object] ]
+44 warn ERESOLVE   },
+44 warn ERESOLVE   force: false,
+44 warn ERESOLVE   isMine: true,
+44 warn ERESOLVE   strictPeerDeps: false,
+44 warn ERESOLVE   current: {
+44 warn ERESOLVE     name: '@types/react',
+44 warn ERESOLVE     version: '19.1.17',
+44 warn ERESOLVE     location: 'node_modules/@types/react',
+44 warn ERESOLVE     isWorkspace: false,
+44 warn ERESOLVE     dependents: [
+44 warn ERESOLVE       [Object], [Object], [Object],
+44 warn ERESOLVE       [Object], [Object], [Object],
+44 warn ERESOLVE       [Object], [Object], [Object],
+44 warn ERESOLVE       [Object], [Object], [Object],
+44 warn ERESOLVE       [Object], [Object], [Object],
+44 warn ERESOLVE       [Object], [Object], [Object],
+44 warn ERESOLVE       [Object]
+44 warn ERESOLVE     ]
+44 warn ERESOLVE   }
+44 warn ERESOLVE }
+45 warn ERESOLVE overriding peer dependency {
+45 warn ERESOLVE   code: 'ERESOLVE',
+45 warn ERESOLVE   edge: {
+45 warn ERESOLVE     type: 'peerOptional',
+45 warn ERESOLVE     name: '@types/react',
+45 warn ERESOLVE     spec: '^19.1.1',
+45 warn ERESOLVE     from: {
+45 warn ERESOLVE       name: 'react-native',
+45 warn ERESOLVE       version: '0.88.1',
+45 warn ERESOLVE       location: 'node_modules/react-native',
+45 warn ERESOLVE       isWorkspace: false,
+45 warn ERESOLVE       dependents: [Array]
+45 warn ERESOLVE     }
+45 warn ERESOLVE   },
+45 warn ERESOLVE   dep: {
+45 warn ERESOLVE     name: '@types/react',
+45 warn ERESOLVE     version: undefined,
+45 warn ERESOLVE     errors: [ [FetchError] ],
+45 warn ERESOLVE     package: {},
+45 warn ERESOLVE     whileInstalling: {
+45 warn ERESOLVE       name: 'appmedicamentos',
+45 warn ERESOLVE       version: '1.0.0',
+45 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+45 warn ERESOLVE     },
+45 warn ERESOLVE     location: 'node_modules/@types/react',
+45 warn ERESOLVE     isWorkspace: false,
+45 warn ERESOLVE     dependents: [ [Object] ]
+45 warn ERESOLVE   },
+45 warn ERESOLVE   force: false,
+45 warn ERESOLVE   isMine: true,
+45 warn ERESOLVE   strictPeerDeps: false,
+45 warn ERESOLVE   current: {
+45 warn ERESOLVE     name: '@types/react',
+45 warn ERESOLVE     version: '19.1.17',
+45 warn ERESOLVE     location: 'node_modules/@types/react',
+45 warn ERESOLVE     isWorkspace: false,
+45 warn ERESOLVE     dependents: [
+45 warn ERESOLVE       [Object], [Object], [Object],
+45 warn ERESOLVE       [Object], [Object], [Object],
+45 warn ERESOLVE       [Object], [Object], [Object],
+45 warn ERESOLVE       [Object], [Object], [Object],
+45 warn ERESOLVE       [Object], [Object], [Object],
+45 warn ERESOLVE       [Object], [Object], [Object],
+45 warn ERESOLVE       [Object]
+45 warn ERESOLVE     ]
+45 warn ERESOLVE   }
+45 warn ERESOLVE }
+46 warn ERESOLVE overriding peer dependency {
+46 warn ERESOLVE   code: 'ERESOLVE',
+46 warn ERESOLVE   edge: {
+46 warn ERESOLVE     type: 'peerOptional',
+46 warn ERESOLVE     name: '@types/react',
+46 warn ERESOLVE     spec: '^19.1.1',
+46 warn ERESOLVE     from: {
+46 warn ERESOLVE       name: 'react-native',
+46 warn ERESOLVE       version: '0.88.1',
+46 warn ERESOLVE       location: 'node_modules/react-native',
+46 warn ERESOLVE       isWorkspace: false,
+46 warn ERESOLVE       dependents: [Array]
+46 warn ERESOLVE     }
+46 warn ERESOLVE   },
+46 warn ERESOLVE   dep: {
+46 warn ERESOLVE     name: '@types/react',
+46 warn ERESOLVE     version: undefined,
+46 warn ERESOLVE     errors: [ [FetchError] ],
+46 warn ERESOLVE     package: {},
+46 warn ERESOLVE     whileInstalling: {
+46 warn ERESOLVE       name: 'appmedicamentos',
+46 warn ERESOLVE       version: '1.0.0',
+46 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+46 warn ERESOLVE     },
+46 warn ERESOLVE     location: 'node_modules/@types/react',
+46 warn ERESOLVE     isWorkspace: false,
+46 warn ERESOLVE     dependents: [ [Object] ]
+46 warn ERESOLVE   },
+46 warn ERESOLVE   force: false,
+46 warn ERESOLVE   isMine: true,
+46 warn ERESOLVE   strictPeerDeps: false,
+46 warn ERESOLVE   current: {
+46 warn ERESOLVE     name: '@types/react',
+46 warn ERESOLVE     version: '19.1.17',
+46 warn ERESOLVE     location: 'node_modules/@types/react',
+46 warn ERESOLVE     isWorkspace: false,
+46 warn ERESOLVE     dependents: [
+46 warn ERESOLVE       [Object], [Object], [Object],
+46 warn ERESOLVE       [Object], [Object], [Object],
+46 warn ERESOLVE       [Object], [Object], [Object],
+46 warn ERESOLVE       [Object], [Object], [Object],
+46 warn ERESOLVE       [Object], [Object], [Object],
+46 warn ERESOLVE       [Object], [Object], [Object],
+46 warn ERESOLVE       [Object]
+46 warn ERESOLVE     ]
+46 warn ERESOLVE   }
+46 warn ERESOLVE }
+47 warn ERESOLVE overriding peer dependency {
+47 warn ERESOLVE   code: 'ERESOLVE',
+47 warn ERESOLVE   edge: {
+47 warn ERESOLVE     type: 'peerOptional',
+47 warn ERESOLVE     name: '@types/react',
+47 warn ERESOLVE     spec: '^19.1.1',
+47 warn ERESOLVE     from: {
+47 warn ERESOLVE       name: 'react-native',
+47 warn ERESOLVE       version: '0.88.1',
+47 warn ERESOLVE       location: 'node_modules/react-native',
+47 warn ERESOLVE       isWorkspace: false,
+47 warn ERESOLVE       dependents: [Array]
+47 warn ERESOLVE     }
+47 warn ERESOLVE   },
+47 warn ERESOLVE   dep: {
+47 warn ERESOLVE     name: '@types/react',
+47 warn ERESOLVE     version: undefined,
+47 warn ERESOLVE     errors: [ [FetchError] ],
+47 warn ERESOLVE     package: {},
+47 warn ERESOLVE     whileInstalling: {
+47 warn ERESOLVE       name: 'appmedicamentos',
+47 warn ERESOLVE       version: '1.0.0',
+47 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+47 warn ERESOLVE     },
+47 warn ERESOLVE     location: 'node_modules/@types/react',
+47 warn ERESOLVE     isWorkspace: false,
+47 warn ERESOLVE     dependents: [ [Object] ]
+47 warn ERESOLVE   },
+47 warn ERESOLVE   force: false,
+47 warn ERESOLVE   isMine: true,
+47 warn ERESOLVE   strictPeerDeps: false,
+47 warn ERESOLVE   current: {
+47 warn ERESOLVE     name: '@types/react',
+47 warn ERESOLVE     version: '19.1.17',
+47 warn ERESOLVE     location: 'node_modules/@types/react',
+47 warn ERESOLVE     isWorkspace: false,
+47 warn ERESOLVE     dependents: [
+47 warn ERESOLVE       [Object], [Object], [Object],
+47 warn ERESOLVE       [Object], [Object], [Object],
+47 warn ERESOLVE       [Object], [Object], [Object],
+47 warn ERESOLVE       [Object], [Object], [Object],
+47 warn ERESOLVE       [Object], [Object], [Object],
+47 warn ERESOLVE       [Object], [Object], [Object],
+47 warn ERESOLVE       [Object]
+47 warn ERESOLVE     ]
+47 warn ERESOLVE   }
+47 warn ERESOLVE }
+48 warn ERESOLVE overriding peer dependency {
+48 warn ERESOLVE   code: 'ERESOLVE',
+48 warn ERESOLVE   edge: {
+48 warn ERESOLVE     type: 'peerOptional',
+48 warn ERESOLVE     name: '@types/react',
+48 warn ERESOLVE     spec: '^19.1.1',
+48 warn ERESOLVE     from: {
+48 warn ERESOLVE       name: 'react-native',
+48 warn ERESOLVE       version: '0.88.1',
+48 warn ERESOLVE       location: 'node_modules/react-native',
+48 warn ERESOLVE       isWorkspace: false,
+48 warn ERESOLVE       dependents: [Array]
+48 warn ERESOLVE     }
+48 warn ERESOLVE   },
+48 warn ERESOLVE   dep: {
+48 warn ERESOLVE     name: '@types/react',
+48 warn ERESOLVE     version: undefined,
+48 warn ERESOLVE     errors: [ [FetchError] ],
+48 warn ERESOLVE     package: {},
+48 warn ERESOLVE     whileInstalling: {
+48 warn ERESOLVE       name: 'appmedicamentos',
+48 warn ERESOLVE       version: '1.0.0',
+48 warn ERESOLVE       path: 'D:\\PROJETOS\\ALARME DE MEDICAMENTOS\\AppMedicamentos\\front'
+48 warn ERESOLVE     },
+48 warn ERESOLVE     location: 'node_modules/@types/react',
+48 warn ERESOLVE     isWorkspace: false,
+48 warn ERESOLVE     dependents: [ [Object] ]
+48 warn ERESOLVE   },
+48 warn ERESOLVE   force: false,
+48 warn ERESOLVE   isMine: true,
+48 warn ERESOLVE   strictPeerDeps: false,
+48 warn ERESOLVE   current: {
+48 warn ERESOLVE     name: '@types/react',
+48 warn ERESOLVE     version: '19.1.17',
+48 warn ERESOLVE     location: 'node_modules/@types/react',
+48 warn ERESOLVE     isWorkspace: false,
+48 warn ERESOLVE     dependents: [
+48 warn ERESOLVE       [Object], [Object], [Object],
+48 warn ERESOLVE       [Object], [Object], [Object],
+48 warn ERESOLVE       [Object], [Object], [Object],
+48 warn ERESOLVE       [Object], [Object], [Object],
+48 warn ERESOLVE       [Object], [Object], [Object],
+48 warn ERESOLVE       [Object], [Object], [Object],
+48 warn ERESOLVE       [Object]
+48 warn ERESOLVE     ]
+48 warn ERESOLVE   }
+48 warn ERESOLVE }
+49 silly placeDep ROOT eslint-config-expo@ REPLACE for: appmedicamentos@1.0.0 want: ~58.0.4
+50 silly placeDep ROOT typescript@ REPLACE for: appmedicamentos@1.0.0 want: ~6.0.3
+51 silly fetch manifest @react-navigation/elements@^2.6.3
+52 silly packumentCache full:https://registry.npmjs.org/@react-navigation%2felements cache-miss
+53 http fetch GET https://registry.npmjs.org/@react-navigation%2felements attempt 1 failed with ENOTFOUND
+54 silly fetch manifest expo-constants@~58.0.14
+55 silly packumentCache full:https://registry.npmjs.org/expo-constants cache-miss
+56 http fetch GET https://registry.npmjs.org/expo-constants attempt 1 failed with ENOTFOUND
+57 silly fetch manifest expo-font@~58.0.11
+58 silly packumentCache full:https://registry.npmjs.org/expo-font cache-miss
+59 http fetch GET https://registry.npmjs.org/expo-font attempt 1 failed with ENOTFOUND
+60 silly fetch manifest expo-status-bar@~58.0.4
+61 silly packumentCache full:https://registry.npmjs.org/expo-status-bar cache-miss
+62 http fetch GET https://registry.npmjs.org/expo-status-bar attempt 1 failed with ENOTFOUND
+63 silly fetch manifest react-native-screens@~4.30.1
+64 silly packumentCache full:https://registry.npmjs.org/react-native-screens cache-miss
+65 http fetch GET https://registry.npmjs.org/react-native-screens attempt 1 failed with ENOTFOUND
+66 silly placeDep ROOT @react-navigation/elements@ OK for: appmedicamentos@1.0.0 want: ^2.6.3
+67 silly placeDep ROOT expo-constants@ OK for: appmedicamentos@1.0.0 want: ~58.0.14
+68 silly placeDep ROOT expo-font@ OK for: appmedicamentos@1.0.0 want: ~58.0.11
+69 silly placeDep ROOT expo-status-bar@ OK for: appmedicamentos@1.0.0 want: ~58.0.4
+70 silly placeDep ROOT react-native-screens@ OK for: appmedicamentos@1.0.0 want: ~4.30.1
+71 silly fetch manifest @expo/require-utils@^58.0.5
+72 silly packumentCache full:https://registry.npmjs.org/@expo%2frequire-utils cache-miss
+73 http fetch GET https://registry.npmjs.org/@expo%2frequire-utils attempt 1 failed with ENOTFOUND
+74 silly placeDep node_modules/@expo/config @expo/require-utils@ OK for: @expo/config@58.0.10 want: ^58.0.5
+75 silly fetch manifest @expo/require-utils@^58.0.5
+76 silly packumentCache full:https://registry.npmjs.org/@expo%2frequire-utils cache-miss
+77 http fetch GET https://registry.npmjs.org/@expo%2frequire-utils attempt 1 failed with ENOTFOUND
+78 silly placeDep node_modules/@expo/config-plugins @expo/require-utils@ OK for: @expo/config-plugins@58.0.11 want: ^58.0.5
+79 silly fetch manifest @expo/require-utils@^58.0.5
+80 silly packumentCache full:https://registry.npmjs.org/@expo%2frequire-utils cache-miss
+81 http fetch GET https://registry.npmjs.org/@expo%2frequire-utils attempt 1 failed with ENOTFOUND
+82 silly placeDep node_modules/@expo/image-utils @expo/require-utils@ OK for: @expo/image-utils@0.12.6 want: ^58.0.5
+83 silly fetch manifest @expo/cli@^58.1.18
+84 silly packumentCache full:https://registry.npmjs.org/@expo%2fcli cache-miss
+85 http fetch GET https://registry.npmjs.org/@expo%2fcli attempt 1 failed with ENOTFOUND
+86 silly fetch manifest @expo/devtools@~58.0.2
+87 silly packumentCache full:https://registry.npmjs.org/@expo%2fdevtools cache-miss
+88 http fetch GET https://registry.npmjs.org/@expo%2fdevtools attempt 1 failed with ENOTFOUND
+89 silly fetch manifest @expo/dom-webview@~58.0.2
+90 silly packumentCache full:https://registry.npmjs.org/@expo%2fdom-webview cache-miss
+91 http fetch GET https://registry.npmjs.org/@expo%2fdom-webview attempt 1 failed with ENOTFOUND
+92 silly fetch manifest @expo/log-box@^58.0.14
+93 silly packumentCache full:https://registry.npmjs.org/@expo%2flog-box cache-miss
+94 http fetch GET https://registry.npmjs.org/@expo%2flog-box attempt 1 failed with ENOTFOUND
+95 silly fetch manifest @expo/metro-config@~58.0.20
+96 silly packumentCache full:https://registry.npmjs.org/@expo%2fmetro-config cache-miss
+97 http fetch GET https://registry.npmjs.org/@expo%2fmetro-config attempt 1 failed with ENOTFOUND
+98 silly fetch manifest babel-preset-expo@~58.0.23
+99 silly packumentCache full:https://registry.npmjs.org/babel-preset-expo cache-miss
+100 http fetch GET https://registry.npmjs.org/babel-preset-expo attempt 1 failed with ENOTFOUND
+101 silly fetch manifest expo-asset@~58.0.19
+102 silly packumentCache full:https://registry.npmjs.org/expo-asset cache-miss
+103 http fetch GET https://registry.npmjs.org/expo-asset attempt 1 failed with ENOTFOUND
+104 silly fetch manifest expo-file-system@~58.0.13
+105 silly packumentCache full:https://registry.npmjs.org/expo-file-system cache-miss
+106 http fetch GET https://registry.npmjs.org/expo-file-system attempt 1 failed with ENOTFOUND
+107 silly fetch manifest expo-keep-awake@~58.0.3
+108 silly packumentCache full:https://registry.npmjs.org/expo-keep-awake cache-miss
+109 http fetch GET https://registry.npmjs.org/expo-keep-awake attempt 1 failed with ENOTFOUND
+110 silly fetch manifest expo-modules-core@~58.0.29
+111 silly packumentCache full:https://registry.npmjs.org/expo-modules-core cache-miss
+112 http fetch GET https://registry.npmjs.org/expo-modules-core attempt 1 failed with ENOTFOUND
+113 silly placeDep node_modules/expo @expo/cli@ OK for: expo@58.0.22 want: ^58.1.18
+114 silly placeDep node_modules/expo @expo/devtools@ OK for: expo@58.0.22 want: ~58.0.2
+115 silly placeDep node_modules/expo @expo/dom-webview@ OK for: expo@58.0.22 want: ~58.0.2
+116 silly placeDep node_modules/expo @expo/log-box@ OK for: expo@58.0.22 want: ^58.0.14
+117 silly placeDep node_modules/expo @expo/metro-config@ OK for: expo@58.0.22 want: ~58.0.20
+118 silly placeDep node_modules/expo babel-preset-expo@ OK for: expo@58.0.22 want: ~58.0.23
+119 silly placeDep node_modules/expo expo-asset@ OK for: expo@58.0.22 want: ~58.0.19
+120 silly placeDep node_modules/expo expo-file-system@ OK for: expo@58.0.22 want: ~58.0.13
+121 silly placeDep node_modules/expo expo-keep-awake@ OK for: expo@58.0.22 want: ~58.0.3
+122 silly placeDep node_modules/expo expo-modules-core@ OK for: expo@58.0.22 want: ~58.0.29
+123 silly fetch manifest @expo/require-utils@^58.0.5
+124 silly packumentCache full:https://registry.npmjs.org/@expo%2frequire-utils cache-miss
+125 http fetch GET https://registry.npmjs.org/@expo%2frequire-utils attempt 1 failed with ENOTFOUND
+126 silly placeDep node_modules/expo-modules-autolinking @expo/require-utils@ OK for: expo-modules-autolinking@58.0.16 want: ^58.0.5
+127 silly fetch manifest expo-application@~58.1.2
+128 silly packumentCache full:https://registry.npmjs.org/expo-application cache-miss
+129 http fetch GET https://registry.npmjs.org/expo-application attempt 1 failed with ENOTFOUND
+130 silly placeDep node_modules/expo-notifications expo-application@ OK for: expo-notifications@58.1.7 want: ~58.1.2
+131 silly fetch manifest @expo/log-box@^58.0.14
+132 silly packumentCache full:https://registry.npmjs.org/@expo%2flog-box cache-miss
+133 http fetch GET https://registry.npmjs.org/@expo%2flog-box attempt 1 failed with ENOTFOUND
+134 silly fetch manifest @expo/metro-runtime@^58.0.16
+135 silly packumentCache full:https://registry.npmjs.org/@expo%2fmetro-runtime cache-miss
+136 http fetch GET https://registry.npmjs.org/@expo%2fmetro-runtime attempt 1 failed with ENOTFOUND
+137 silly fetch manifest @react-native-masked-view/masked-view@^0.3.2
+138 silly packumentCache full:https://registry.npmjs.org/@react-native-masked-view%2fmasked-view cache-miss
+139 http fetch GET https://registry.npmjs.org/@react-native-masked-view%2fmasked-view attempt 1 failed with ENOTFOUND
+140 silly fetch manifest expo-glass-effect@^58.0.5
+141 silly packumentCache full:https://registry.npmjs.org/expo-glass-effect cache-miss
+142 http fetch GET https://registry.npmjs.org/expo-glass-effect attempt 1 failed with ENOTFOUND
+143 silly fetch manifest react-native-drawer-layout@^4.2.12
+144 silly packumentCache full:https://registry.npmjs.org/react-native-drawer-layout cache-miss
+145 http fetch GET https://registry.npmjs.org/react-native-drawer-layout attempt 1 failed with ENOTFOUND
+146 silly placeDep node_modules/expo-router @expo/log-box@ OK for: expo-router@58.0.29 want: ^58.0.14
+147 silly placeDep node_modules/expo-router @expo/metro-runtime@ OK for: expo-router@58.0.29 want: ^58.0.16
+148 silly placeDep node_modules/expo-router @react-native-masked-view/masked-view@ OK for: expo-router@58.0.29 want: ^0.3.2
+149 silly placeDep node_modules/expo-router expo-glass-effect@ OK for: expo-router@58.0.29 want: ^58.0.5
+150 silly placeDep node_modules/expo-router react-native-drawer-layout@ OK for: expo-router@58.0.29 want: ^4.2.12
+151 silly fetch manifest @react-native/virtualized-lists@0.88.1
+152 silly packumentCache full:https://registry.npmjs.org/@react-native%2fvirtualized-lists cache-miss
+153 http fetch GET https://registry.npmjs.org/@react-native%2fvirtualized-lists attempt 1 failed with ENOTFOUND
+154 silly placeDep node_modules/react-native @react-native/virtualized-lists@ OK for: react-native@0.88.1 want: 0.88.1
+155 silly fetch manifest react-native-is-edge-to-edge@^1.3.1
+156 silly packumentCache full:https://registry.npmjs.org/react-native-is-edge-to-edge cache-miss
+157 http fetch GET https://registry.npmjs.org/react-native-is-edge-to-edge attempt 1 failed with ENOTFOUND
+158 silly placeDep node_modules/react-native-reanimated react-native-is-edge-to-edge@ OK for: react-native-reanimated@4.7.1 want: ^1.3.1
+159 verbose type system
+160 verbose stack FetchError: request to https://registry.npmjs.org/@types%2freact failed, reason: getaddrinfo ENOTFOUND registry.npmjs.org
+160 verbose stack     at ClientRequest.<anonymous> (C:\Users\olive\AppData\Roaming\npm\node_modules\npm\node_modules\minipass-fetch\lib\index.js:130:14)
+160 verbose stack     at ClientRequest.emit (node:events:519:28)
+160 verbose stack     at emitErrorEvent (node:_http_client:105:11)
+160 verbose stack     at _destroy (node:_http_client:898:9)
+160 verbose stack     at onSocketNT (node:_http_client:918:5)
+160 verbose stack     at process.processTicksAndRejections (node:internal/process/task_queues:91:21)
+161 error code ENOTFOUND
+162 error syscall getaddrinfo
+163 error errno ENOTFOUND
+164 error network request to https://registry.npmjs.org/@types%2freact failed, reason: getaddrinfo ENOTFOUND registry.npmjs.org
+165 error network This is a problem related to network connectivity.
+165 error network In most cases you are behind a proxy or have bad network settings.
+165 error network
+165 error network If you are behind a proxy, please make sure that the 'proxy' config is set properly.  See: 'npm help config'
+166 silly unfinished npm timer reify 1793591313828
+167 silly unfinished npm timer reify:loadTrees 1793591313839
+168 verbose cwd D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\front
+169 verbose os Windows_NT 10.0.26200
+170 verbose node v22.19.0
+171 verbose npm  v11.18.0
+172 verbose exit 1
+173 verbose code 1
+174 error A complete log of this run can be found in: D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\front\.npm-cache\_logs\2026-11-02T03_48_28_719Z-debug-0.log

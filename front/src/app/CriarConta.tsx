@@ -1,6 +1,8 @@
+import Motion from '../components/Motion';
+import { ScrollView, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Alert } from 'react-native';
+
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { apiService } from '../services/api';
@@ -11,9 +13,11 @@ export default function CriarConta() {
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
 
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  
-  const handleCadastro = async () => { 
+
+  const handleCadastro = async () => {
+    if (loading) return;
     if (!nomeUsuario || !email || !senha || !confirmarSenha) {
       Alert.alert('Atenção', 'Preencha todos os campos!');
       return;
@@ -24,6 +28,7 @@ export default function CriarConta() {
       return;
     }
 
+    setLoading(true);
     try {
       await apiService.criarUsuario({
         nome: nomeUsuario,
@@ -38,25 +43,27 @@ export default function CriarConta() {
       const errorMessage = error?.message || 'Não foi possível criar a conta.';
       Alert.alert('Erro', errorMessage);
       console.error('Erro na requisição:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.innerContainer}>
-          
+
+        <ScrollView contentContainerStyle={styles.innerContainer} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}>
+
           <View style={styles.header}>
             {/* Colocar Logo */}
           </View>
 
-          <View style={styles.formContainer}>
+          <Motion style={styles.formContainer}>
             <Text style={styles.TextoBoasVindas}>Criar Conta</Text>
 
-            <Input 
+            <Input
               iconName="user"
               placeholder="Nome de usuário"
               value={nomeUsuario}
@@ -64,7 +71,7 @@ export default function CriarConta() {
               autoCapitalize="words"
             />
 
-            <Input 
+            <Input
               iconName="mail"
               placeholder="E-mail"
               value={email}
@@ -73,7 +80,7 @@ export default function CriarConta() {
               autoCapitalize="none"
             />
 
-            <Input 
+            <Input
               iconName="lock"
               placeholder="Senha"
               value={senha}
@@ -81,7 +88,7 @@ export default function CriarConta() {
               secureTextEntry
             />
 
-            <Input 
+            <Input
               iconName="lock"
               placeholder="Confirmar senha"
               value={confirmarSenha}
@@ -90,7 +97,7 @@ export default function CriarConta() {
             />
 
             <View style={{ marginTop: 10 }}>
-              <Button titulo="CADASTRAR" onPress={handleCadastro} />
+              <Button titulo={loading ? "Criando conta..." : "Criar conta"} loading={loading} onPress={handleCadastro} />
             </View>
 
             <View style={styles.registerContainer}>
@@ -100,9 +107,9 @@ export default function CriarConta() {
               </TouchableOpacity>
             </View>
 
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
+          </Motion>
+        </ScrollView>
+
     </KeyboardAvoidingView>
   );
 }
@@ -113,10 +120,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   innerContainer: {
-    flex: 1,
+    width: '100%', maxWidth: 560, alignSelf: 'center',
+    flexGrow: 1,
   },
   header: {
-    flex: 0.2, 
+    minHeight: 90,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -127,14 +135,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   formContainer: {
-    flex: 0.8, 
+    flexGrow: 1,
     backgroundColor: '#DEF2F5',
-    borderTopLeftRadius: 100,
-    borderTopRightRadius: 100,
-    paddingHorizontal: 40,
-    paddingTop: 40, 
-    elevation: 10, 
-    shadowColor: '#000', 
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingHorizontal: 28,
+    paddingTop: 32,
+    paddingBottom: 36,
+    elevation: 10,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: -5 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -143,7 +152,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#2c3e50',
-    marginBottom: 30, 
+    marginBottom: 30,
     textAlign: 'center',
   },
   buttonText: {
@@ -155,7 +164,8 @@ const styles = StyleSheet.create({
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 30,
+    flexWrap: 'wrap',
+    marginTop: 24,
   },
   TextoCriaConta: {
     color: '#7f8c8d',

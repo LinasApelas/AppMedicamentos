@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "expo": "^58.0.22",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
     "react-native-calendars": "^1.1314.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
   }
 }

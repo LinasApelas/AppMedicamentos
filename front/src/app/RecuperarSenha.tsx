@@ -1,7 +1,9 @@
+import Motion from '../components/Motion';
+import { ScrollView, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 // --- IMPORTAÇÃO DA IMAGE ADICIONADA AQUI ---
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Image } from 'react-native';
+
 import Button from '../components/Button';
 import Input from '../components/Input';
 
@@ -10,35 +12,35 @@ export default function RedefinirSenha() {
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const router = useRouter();
 
-  const handleRedefinirSenha = () => { 
+  const handleRedefinirSenha = () => {
     // Lógica para salvar a nova senha no banco de dados entraria aqui
     console.log("Senha alterada com sucesso!");
-    router.replace('/login'); 
+    router.replace('/login');
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.innerContainer}>
-          
+
+        <ScrollView contentContainerStyle={styles.innerContainer} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}>
+
           {/* Espaço Superior - Agora com a Logo */}
           <View style={styles.header}>
-            <Image 
-              source={require('../img/Logo.png')} 
+            <Image
+              source={require('../img/Logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
           </View>
 
           {/* Parte Inferior - O Contentor Branco com a Curva Superior */}
-          <View style={styles.formContainer}>
+          <Motion style={styles.formContainer}>
             <Text style={styles.TextoBoasVindas}>Nova Senha</Text>
 
             {/* Input: Senha */}
-            <Input 
+            <Input
               iconName="lock"
               placeholder="Nova senha"
               value={senha}
@@ -47,7 +49,7 @@ export default function RedefinirSenha() {
             />
 
             {/* Input: Confirmar Senha */}
-            <Input 
+            <Input
               iconName="lock"
               placeholder="Confirmar senha"
               value={confirmarSenha}
@@ -70,9 +72,9 @@ export default function RedefinirSenha() {
               </TouchableOpacity>
             </View>
 
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
+          </Motion>
+        </ScrollView>
+
     </KeyboardAvoidingView>
   );
 }
@@ -83,10 +85,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   innerContainer: {
-    flex: 1,
+    width: '100%', maxWidth: 560, alignSelf: 'center',
+    flexGrow: 1,
   },
   header: {
-    flex: 0.3, 
+    minHeight: 210,
+    paddingVertical: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -96,12 +100,13 @@ const styles = StyleSheet.create({
     height: 180,
   },
   formContainer: {
-    flex: 0.7, 
+    flexGrow: 1,
     backgroundColor: '#DEF2F5',
-    borderTopLeftRadius: 100,
-    borderTopRightRadius: 100,
-    paddingHorizontal: 40,
-    paddingTop: 40,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingHorizontal: 28,
+    paddingTop: 32,
+    paddingBottom: 36,
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -5 },
@@ -126,7 +131,8 @@ const styles = StyleSheet.create({
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 30,
+    flexWrap: 'wrap',
+    marginTop: 24,
   },
   CriaContaLink: {
     color: '#1a73e8',

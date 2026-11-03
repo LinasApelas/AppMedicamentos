@@ -5,9 +5,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 interface CalendarioProps {
   onDateSelected?: (date: string) => void;
   selectedDate?: string;
+  hasSchedule?: (date: string) => boolean;
 }
 
-export default function Calendario({ onDateSelected, selectedDate }: CalendarioProps) {
+export default function Calendario({ onDateSelected, selectedDate, hasSchedule }: CalendarioProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [today, setToday] = useState('');
 
@@ -58,24 +59,28 @@ export default function Calendario({ onDateSelected, selectedDate }: CalendarioP
   }
 
   const previousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    setCurrentDate(date);
+    onDateSelected?.(formatDate(date));
   };
 
   const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    setCurrentDate(date);
+    onDateSelected?.(formatDate(date));
   };
 
   return (
     <View style={styles.container}>
       {/* Header com mês/ano e setas */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={previousMonth} style={styles.arrow}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Mês anterior" onPress={previousMonth} style={styles.arrow}>
           <MaterialIcons name="chevron-left" size={24} color="#1B3B45" />
         </TouchableOpacity>
         <Text style={styles.monthYear}>
           {getMonthName(currentDate)} {currentDate.getFullYear()}
         </Text>
-        <TouchableOpacity onPress={nextMonth} style={styles.arrow}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Próximo mês" onPress={nextMonth} style={styles.arrow}>
           <MaterialIcons name="chevron-right" size={24} color="#1B3B45" />
         </TouchableOpacity>
       </View>
@@ -99,6 +104,9 @@ export default function Calendario({ onDateSelected, selectedDate }: CalendarioP
       return (
        <TouchableOpacity
        key={index}
+       accessibilityRole="button"
+       accessibilityLabel={dateString || undefined}
+       accessibilityState={{ selected: isSelected }}
        style={[
         styles.dayButton,
         isSelected && styles.dayButtonSelected,
@@ -124,6 +132,7 @@ export default function Calendario({ onDateSelected, selectedDate }: CalendarioP
           >
             {day}
           </Text>
+          {dateString && hasSchedule?.(dateString) && <View style={[styles.todayDot, isSelected && { backgroundColor: '#fff' }]} />}
         </>
       )}
     </TouchableOpacity>
@@ -138,8 +147,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
     borderRadius: 20,
-    padding: 15,
-    marginHorizontal: 20,
+    padding: 8,
     marginVertical: 10,
     elevation: 3,
     shadowColor: '#000',
@@ -154,10 +162,10 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   arrow: {
-    padding: 8,
+    minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center',
   },
   monthYear: {
-    fontSize: 18,
+    fontSize: 16, lineHeight: 22, includeFontPadding: false,
     fontWeight: 'bold',
     color: '#1B3B45',
   },
@@ -170,7 +178,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#12323A',
-    width: '14%',
+    width: '14.285714%',
     textAlign: 'center',
   },
   daysGrid: {
@@ -178,8 +186,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   dayButton: {
-    width: '14.28%',
-    aspectRatio: 1,
+    width: '14.285714%',
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 12,
@@ -197,6 +205,8 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 16,
+    lineHeight: 22,
+    includeFontPadding: false,
     fontWeight: '600',
     color: '#12323A',
   },
@@ -211,6 +221,6 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: '#1a73e8',
-    marginTop: 2,
+    position: 'absolute', bottom: 3,
   },
 });

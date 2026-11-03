@@ -1,5 +1,8 @@
+import Motion from '../../components/Motion';
+import { ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+
 import { useRouter } from 'expo-router';
 import Button from '../../components/Button';
 import { apiService } from '../../services/api';
@@ -40,15 +43,15 @@ export default function Perfil() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Perfil</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Motion style={{ marginBottom: 24 }}><View style={styles.avatar}><MaterialIcons name="person-outline" size={38} color="#12323A" /></View><Text style={styles.title}>Seu perfil</Text><Text style={styles.message}>Suas informações, sempre à mão.</Text></Motion>
 
       {loading ? (
         <ActivityIndicator size="large" color="#1a73e8" />
       ) : error ? (
         <Text style={styles.error}>{error}</Text>
       ) : user ? (
-        <View style={styles.card}>
+        <Motion style={styles.card}>
           <Text style={styles.label}>Nome</Text>
           <Text style={styles.value}>{user.nome}</Text>
 
@@ -57,35 +60,36 @@ export default function Perfil() {
 
           <Text style={styles.label}>Fuso Horário</Text>
           <Text style={styles.value}>{user.fusoHorario || 'Não definido'}</Text>
-        </View>
+        </Motion>
       ) : (
         <Text style={styles.message}>Nenhum usuário logado.</Text>
       )}
 
       <View style={styles.controls}>
-        <Button titulo="Atualizar" onPress={handleRefresh} corFundo="#9DD7E2" />
+        <Button titulo="Atualizar" onPress={handleRefresh} corFundo="#9DD7E2" icon="refresh-cw" disabled={loading} />
         <View style={{ height: 12 }} />
-        <Button titulo="Sair" onPress={handleLogout} corFundo="#e74c3c" />
+        <Button titulo="Sair" onPress={handleLogout} corFundo="#e74c3c" icon="log-out" />
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  avatar: { width: 76, height: 76, borderRadius: 26, backgroundColor: '#DEF2F5', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#ffffff',
     padding: 24,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 24,
+    marginBottom: 8,
     color: '#12323A',
   },
   card: {
     backgroundColor: '#DEF2F5',
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 20,
     marginBottom: 24,
   },

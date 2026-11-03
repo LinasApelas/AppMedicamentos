@@ -1,257 +1,206 @@
-import { StyleSheet, Text, TouchableOpacity, View, Alert,  KeyboardAvoidingView, Platform, ScrollView} from 'react-native';
+import Motion from '../../components/Motion';
+import { StyleSheet, Text, TouchableOpacity, View, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite'; 
-import * as Notifications from 'expo-notifications'; 
-import { apiService } from '../../services/api';
-
-// 1. Configuração padrão de exibição
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
-
-// 2. CRIAR BOTÕES DE AÇÃO (Isso deixa a notificação MAIOR e interativa)
-Notifications.setNotificationCategoryAsync('acoes-remedio', [
-  {
-    identifier: 'TOMAR',
-    buttonTitle: '💊 Tomar Medicamento',
-    options: { opensAppToForeground: true }, // Abre o app para registrar
-  },
-  {
-    identifier: 'SONECA',
-    buttonTitle: '⏰ Lembrar em 10 min',
-    options: { opensAppToForeground: false },
-  },
-]);
+import { useCallback, useState } from 'react';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import { dataLocal, lerData, type Remedio } from '../../services/agenda';
+import { enviarLembrete } from '../../services/lembretes';
+import { atualizarAlarmes } from '../../services/alarmes';
 
 export default function Adicionar() {
-
     const router = useRouter();
-    const db = useSQLiteContext(); 
-    
-
+    const db = useSQLiteContext();
+    const { id } = useLocalSearchParams<{ id?: string }>();
+    const [original, setOriginal] = useState<Remedio | null>(null);
     const [ParaOutraPessoa, setParaOutraPessoa] = useState(false);
     const [nomePessoa, setNomePessoa] = useState('');
     const [nomeMedicacao, setMedicacao] = useState('');
     const [proximaDose, setProximaDose] = useState('');
+    const [inicio, setInicio] = useState(dataLocal());
     const [intervalo, setIntervalo] = useState('');
     const [frequencia, setFrequencia] = useState('');
     const [loading, setLoading] = useState(false);
+    const [carregando, setCarregando] = useState(false);
 
-const handleSalvar = async () => {
-        if (!nomeMedicacao.trim()) {
-            Alert.alert("Atenção", "Por favor, digite o nome do medicamento.");
-            return;
-        }
+    useFocusEffect(useCallback(() => {
+        let active = true;
+        setOriginal(null);
+        setMedicacao(''); setNomePessoa(''); setParaOutraPessoa(false);
+        setProximaDose(''); setIntervalo(''); setFrequencia(''); setInicio(dataLocal());
+        if (id) {
+            setCarregando(true);
+            db.getFirstAsync<Remedio>('SELECT * FROM lembretes WHERE id = ?', [id]).then(item => {
+                if (!active) return;
+                if (!item) throw new Error('Medicamento não encontrado');
+                setOriginal(item); setMedicacao(item.nome); setNomePessoa(item.username || '');
+                setParaOutraPessoa(!!item.username); setProximaDose(/^\d{2}:\d{2}$/.test(item.dose || '') ? item.dose! : '');
+                setIntervalo(item.intervalo?.toString() || ''); setFrequencia(item.frequencia?.toString() || '');
+                setInicio(item.inicio || dataLocal());
+            }).catch(() => { if (active) { Alert.alert('Erro', 'Não foi possível carregar o medicamento.'); router.replace('/Lembretes'); } })
+              .finally(() => { if (active) setCarregando(false); });
+        } else setCarregando(false);
+        return () => { active = false; };
+    }, [db, id, router]));
 
-        const regexHora = /^([01]\d|2[0-3]):([0-5]\d)$/;
-        if (!regexHora.test(proximaDose)) {
-            Alert.alert("Formato Inválido", "Por favor, digite o horário no formato HH:MM (ex: 14:30).");
-            return;
+    const handleSalvar = async () => {
+        if (loading || carregando || (id && !original)) return;
+        if (!nomeMedicacao.trim() || (ParaOutraPessoa && !nomePessoa.trim())) {
+            Alert.alert('Atenção', 'Preencha o nome do medicamento e da pessoa.'); return;
         }
-
-        const regexIntervalo = /^\d+$/;
-        if (!regexIntervalo.test(intervalo)) {
-        Alert.alert("Formato Inválido", "Por favor, Preencha os campos necessários ou digite apenas números.");
-        return;
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(proximaDose) || !lerData(inicio)) {
+            Alert.alert('Atenção', 'Use horário HH:MM e uma data válida no formato AAAA-MM-DD.'); return;
         }
-        
-        const regexFrequencia = /^\d+$/;
-        if (!regexIntervalo.test(frequencia)) {
-        Alert.alert("Formato Inválido", "Por favor, Preencha os campos necessários ou digite apenas números.");
-        return;
+        if (!/^\d+$/.test(intervalo) || !/^\d+$/.test(frequencia) || Number(intervalo) < 1 || Number(intervalo) > 8760 || Number(frequencia) < 1 || Number(frequencia) > 365) {
+            Alert.alert('Atenção', 'Informe intervalo de 1 a 8760 horas e duração de 1 a 365 dias.'); return;
         }
-
         setLoading(true);
-
+        const item: Remedio = { id: original?.id || Date.now().toString(), nome: nomeMedicacao.trim(),
+            username: ParaOutraPessoa ? nomePessoa.trim() : '', dose: proximaDose, inicio,
+            intervalo: Number(intervalo), frequencia: Number(frequencia), serverId: original?.serverId || null, pendente: 1 };
         try {
-            const idUnico = Date.now().toString();
-
-            // Salvar no banco de dados local (SQLite)
-            await db.runAsync(
-                `INSERT INTO lembretes (id, username, nome, intervalo, frequencia, dose) VALUES (?, ?, ?, ?, ?, ?);`,
-                [idUnico, nomePessoa, nomeMedicacao, intervalo, frequencia, proximaDose]
-            );
-
-            // Salvar no servidor backend também
-            try {
-                await apiService.criarMedicamento({
-                    nome: nomeMedicacao,
-                    unidadeMedida: 'porção',
-                    descricao: `Intervalo: ${intervalo}h, Frequência: ${frequencia} dias`,
-                });
-            } catch (serverError) {
-                console.error('Aviso: Não foi possível sincronizar com o servidor:', serverError);
-                Alert.alert('Aviso', 'Medicamento salvo localmente, mas não foi possível sincronizar com o servidor.');
-            }
-
-            const [horaString, minutoString] = proximaDose.split(':');
-            const hora = parseInt(horaString, 10);
-            const minuto = parseInt(minutoString, 10);
-
-            const { status } = await Notifications.requestPermissionsAsync();
-            
-            if (status === 'granted') {
-                
-                if (Platform.OS === 'android') {
-                    await Notifications.setNotificationChannelAsync('remedios-urgentes', {
-                        name: 'Alarmes de Medicamentos',
-                        importance: Notifications.AndroidImportance.MAX,
-                        vibrationPattern: [0, 1000, 500, 1000, 500, 1000, 500, 1000],
-                        sound: 'default',
-                        bypassDnd: true,
-                    });
-                }
-
-                // Agenda a notificação com super prioridade
-                 await Notifications.scheduleNotificationAsync({
-                    content: {
-                        title: "🚨 HORA DO SEU MEDICAMENTO! 🚨",
-                        body: `Não se esqueça de tomar o remédio: ${nomeMedicacao}`,
-                        sound: true,
-                        categoryIdentifier: 'acoes-remedio',
-                        sticky: true,
-                        data: { id: idUnico }, // Manda o ID escondido para a outra tela saber qual remédio é
-                    },
-                    trigger: {
-                        type: Notifications.SchedulableTriggerInputTypes.DAILY,
-                        hour: hora,
-                        minute: minuto,
-                    },
-                });
-                
-            } else {
-                Alert.alert("Aviso", "Permita as notificações para os alarmes funcionarem.");
-            }
-            
-            setNomePessoa('');
-            setMedicacao('');
-            setIntervalo('');
-            setFrequencia('');
-            setProximaDose('');
-
-            router.replace('/Lembretes'); 
-
-        } catch (error) {
-            console.error(error);
-            Alert.alert("Erro", "Não foi possível salvar.");
-        } finally {
-            setLoading(false);
-        }
+            await db.runAsync(`INSERT INTO lembretes (id, username, nome, intervalo, frequencia, dose, inicio, serverId, pendente)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1) ON CONFLICT(id) DO UPDATE SET username=excluded.username,
+                nome=excluded.nome, intervalo=excluded.intervalo, frequencia=excluded.frequencia, dose=excluded.dose,
+                inicio=excluded.inicio, pendente=1`,
+                [item.id, item.username, item.nome, item.intervalo, item.frequencia, item.dose, item.inicio, item.serverId]);
+            try { await enviarLembrete(db, item); }
+            catch { Alert.alert('Salvo no aparelho', 'A sincronização será tentada novamente ao abrir os lembretes.'); }
+            try { await atualizarAlarmes(await db.getAllAsync<Remedio>('SELECT * FROM lembretes'), true); }
+            catch { Alert.alert('Aviso', 'Medicamento salvo, mas não foi possível atualizar os alarmes. Confira a permissão de notificações.'); }
+            router.setParams({ id: undefined });
+            router.replace('/Lembretes');
+        } catch { Alert.alert('Erro', 'Não foi possível salvar o medicamento.'); }
+        finally { setLoading(false); }
     };
-    
         return(
 
-            <View style={styles.container}>
+            <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#ffffff' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+                <Motion style={styles.intro}><Text style={styles.title}>{id ? 'Editar medicamento' : 'Um cuidado de cada vez'}</Text><Text style={styles.subtitle}>Organize os horários do seu medicamento.</Text></Motion>
 
                 <View style={styles.containerDeTroca}>
                     <TouchableOpacity
                     style={[ styles.botaoDeTroca, !ParaOutraPessoa ? styles.botaoAtivo : styles.botaoDesligado ]}
+                    accessibilityRole="tab" accessibilityState={{ selected: !ParaOutraPessoa }}
                     onPress={() => setParaOutraPessoa(false)}>
                     <Text style={!ParaOutraPessoa ? styles.textoAtivo : styles.textoDesligado}> Para Mim </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                     style={[ styles.botaoDeTroca, ParaOutraPessoa ? styles.botaoAtivo : styles.botaoDesligado ]}
+                    accessibilityRole="tab" accessibilityState={{ selected: ParaOutraPessoa }}
                     onPress={() => setParaOutraPessoa(true)}>
                     <Text style={ParaOutraPessoa ? styles.textoAtivo : styles.textoDesligado}> Outra Pessoa </Text>
                     </TouchableOpacity>
                 </View>
 
     {ParaOutraPessoa && (
-        <View style={styles.input}>
+        <Motion style={styles.input}>
             <Input
-                iconName="user" 
+                iconName="user"
                 placeholder="Nome da Outra Pessoa..." //input simples q captura o nome do outro paciente quando for o caso
                 value={nomePessoa}
                 onChangeText={setNomePessoa}
             />
-        </View>        
+        </Motion>
     )}
 
         <View style={styles.input}>
+            <Input label="Data de início" placeholder="AAAA-MM-DD" value={inicio} onChangeText={setInicio} maxLength={10} iconName="calendar" />
             <Input
-                iconName="edit-2" 
-                placeholder="Nome da(s) Medicação(ões)..." //input simples q captura o nome da medicação
+                iconName="edit-2"
+                label="Medicamento"
+                placeholder="Nome do medicamento" //input simples q captura o nome da medicação
                 value={nomeMedicacao}
                 onChangeText={setMedicacao}
             />
 
             <Input
-                placeholder="Horário da Primeira/Próxima Dose..." //horário que a primeira ou próxima dose será tomada
+                label="Horário da primeira dose"
+                placeholder="HH:MM, por exemplo 08:00"
+                keyboardType="numbers-and-punctuation" //horário que a primeira ou próxima dose será tomada
                 iconName='info'
                 value={proximaDose}
                 onChangeText={setProximaDose}
             />
 
              <Input
-                placeholder="Intervalo de Tempo (ex: de 8 em 8 horas)..." //de quantas em quantas horas será tomada a medicação
+                label="Intervalo em horas"
+                placeholder="Ex.: 8"
+                keyboardType="number-pad" //de quantas em quantas horas será tomada a medicação
                 iconName='clock'
                 value={intervalo}
                 onChangeText={setIntervalo}
             />
 
             <Input
-                placeholder="Frequência... (ex: quantidade de dias)" //quantidade de dias que a medicação será tomada
+                label="Duração em dias"
+                placeholder="Ex.: 7"
+                keyboardType="number-pad" //quantidade de dias que a medicação será tomada
                 iconName='calendar'
                 value={frequencia}
                 onChangeText={setFrequencia}
             />
+            <Text style={styles.subtitle}>A duração inclui o dia de início. Os horários são calculados a partir da primeira dose.</Text>
         </View>
 
             <View style={styles.botao}>
-                <Button 
-                    titulo={loading ? 'Salvando...' : 'Salvar'}
+                <Button
+                    titulo={carregando ? 'Carregando...' : loading ? 'Salvando...' : id ? 'Salvar alterações' : 'Salvar'}
                     onPress={handleSalvar}
-                    disabled={loading}
+                    disabled={loading || carregando}
+                    loading={loading}
+                    icon="check"
                 />
+                {!!id && <View style={{ marginTop: 12 }}><Button titulo="Cancelar edição" corFundo="#E2F1F8" disabled={loading} onPress={() => { router.setParams({ id: undefined }); router.replace('/Lembretes'); }} /></View>}
             </View>
-        </View>
+        </ScrollView>
+        </KeyboardAvoidingView>
 
   );
 }
 
 
 const styles = StyleSheet.create({
+intro: { width: '100%', marginBottom: 24 },
+title: { fontSize: 24, lineHeight: 30, includeFontPadding: false, fontWeight: '700', color: '#12323A', marginBottom: 8 },
+subtitle: { fontSize: 15, color: '#808080', lineHeight: 22 },
 
 container: {
-    flex: 1,
+    flexGrow: 1,
+    width: '100%', maxWidth: 560, alignSelf: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 32,
     backgroundColor: '#ffffff',
     alignItems: 'center',
     paddingTop: 20,
 },
 
 botao: {
-    position: 'absolute',
-    bottom: 20,
-    width: '95%', 
+    marginTop: 12,
+    width: '100%',
 },
 
 input: {
-    width: '95%',
+    width: '100%',
 },
 
 containerDeTroca: {
     flexDirection: 'row',
     borderWidth: 0.5,
-    borderColor: '#000000',
-    borderRadius: 30,
+    borderColor: '#99D9EA',
+    borderRadius: 20,
     marginBottom: 20,
-    height: 60,
-    width: '95%',
+    minHeight: 56,
+    width: '100%',
     overflow: 'hidden',
 },
 
 botaoDeTroca: {
     flex: 1,
+    paddingVertical: 12,
     justifyContent: 'center',
     alignItems: 'center',
 },
@@ -268,12 +217,16 @@ textoAtivo: {
     color: '#000000',
     fontWeight: 'bold',
     fontSize: 18,
+    lineHeight: 24,
+    includeFontPadding: false,
 },
 
 textoDesligado: {
     color: '#808080',
     fontSize: 18,
+    lineHeight: 24,
+    includeFontPadding: false,
     fontWeight: 'bold',
 },
-  
+
 })

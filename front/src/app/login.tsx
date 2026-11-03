@@ -1,54 +1,38 @@
+import Motion from '../components/Motion';
+import { ScrollView, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View, Alert, Image } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 // --- IMPORTAÇÃO DA IMAGE ADICIONADA AQUI ---
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Alert, Image } from 'react-native';
+
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { apiService } from '../services/api';
+import { sincronizarLembretes } from '../services/lembretes';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const db = useSQLiteContext();
 
-  const sincronizarMedicamentosServer = async () => {
-    try {
-      const medicamentosSeriais = await apiService.listarMedicamentos();
-      for (const medicamento of medicamentosSeriais) {
-        const localId = `server-${medicamento.id}`;
-        await db.runAsync(
-          `INSERT OR REPLACE INTO lembretes (id, username, nome, intervalo, frequencia, dose) VALUES (?, ?, ?, ?, ?, ?);`,
-          [
-            localId,
-            '',
-            medicamento.nome,
-            null,
-            null,
-            medicamento.descricao || medicamento.unidadeMedida || '',
-          ]
-        );
-      }
-    } catch (syncError) {
-      console.error('Erro ao sincronizar medicamentos do servidor:', syncError);
-    }
-  };
-
-  const handleLogin = async () => { 
+  const handleLogin = async () => {
+    if (loading) return;
     if (!email || !senha) {
       Alert.alert('Atenção', 'Preencha o e-mail e a senha!');
       return;
     }
 
+    setLoading(true);
     try {
       const usuarioLogado = await apiService.fazerLogin({
         email: email,
         senha: senha,
       });
 
-      await sincronizarMedicamentosServer();
+      await sincronizarLembretes(db).catch(error => console.warn('Sincronização pendente:', error));
       Alert.alert('Sucesso', `Bem-vindo, ${usuarioLogado.nome}!`);
       router.replace('../(tabs)/Perfil');
     } catch (error: any) {
@@ -59,31 +43,33 @@ export default function Login() {
         Alert.alert('Erro', errorMessage);
       }
       console.error('Erro na requisição:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.innerContainer}>
-          
+
+        <ScrollView contentContainerStyle={styles.innerContainer} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}>
+
           <View style={styles.header}>
             {/* --- IMAGEM ADICIONADA AQUI NA PARTE BRANCA --- */}
-            <Image 
-              source={require('../img/Logo.png')} 
+            <Image
+              source={require('../img/Logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
           </View>
 
-          <View style={styles.formContainer}>
+          <Motion style={styles.formContainer}>
             <Text style={styles.TextoBoasVindas}>Login</Text>
 
-            <Input 
-              iconName="mail" 
+            <Input
+              iconName="mail"
               placeholder="E-mail"
               value={email}
               onChangeText={setEmail}
@@ -91,7 +77,7 @@ export default function Login() {
               autoCapitalize="none"
             />
 
-            <Input 
+            <Input
               iconName="lock"
               placeholder="Senha"
               value={senha}
@@ -103,7 +89,7 @@ export default function Login() {
               <Text style={styles.EsqueceuSenhaLink}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
-            <Button titulo="ENTRAR" onPress={handleLogin} />
+            <Button titulo={loading ? "Entrando..." : "Entrar"} loading={loading} onPress={handleLogin} />
 
             <View style={styles.registerContainer}>
               <Text style={styles.TextoCriaConta}>Ainda não tem conta? </Text>
@@ -112,9 +98,9 @@ export default function Login() {
               </TouchableOpacity>
             </View>
 
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
+          </Motion>
+        </ScrollView>
+
     </KeyboardAvoidingView>
   );
 }
@@ -125,17 +111,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   innerContainer: {
-    flex: 1,
+    width: '100%', maxWidth: 560, alignSelf: 'center',
+    flexGrow: 1,
   },
   header: {
-    flex: 0.4,
+    minHeight: 210,
+    paddingVertical: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
   // --- ESTILO DA LOGO ---
   logo: {
-    width: 200,  // Você pode aumentar ou diminuir conforme achar melhor
-    height: 200,
+    width: 150,  // Você pode aumentar ou diminuir conforme achar melhor
+    height: 150,
   },
   headerTitle: {
     fontSize: 26,
@@ -144,14 +132,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   formContainer: {
-    flex: 0.6,
+    flexGrow: 1,
     backgroundColor: '#DEF2F5',
-    borderTopLeftRadius: 100,
-    borderTopRightRadius: 0,
-    paddingHorizontal: 40,
-    paddingTop: 40,
-    elevation: 10, 
-    shadowColor: '#000', 
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingHorizontal: 28,
+    paddingTop: 32,
+    paddingBottom: 36,
+    elevation: 10,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: -5 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -160,7 +149,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#2c3e50',
-    marginBottom: 50,
+    marginBottom: 28,
     textAlign: 'center',
   },
   EsqueceuSenha: {
@@ -181,7 +170,8 @@ const styles = StyleSheet.create({
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 30,
+    flexWrap: 'wrap',
+    marginTop: 24,
   },
   TextoCriaConta: {
     color: '#7f8c8d',

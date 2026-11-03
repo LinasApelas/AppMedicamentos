@@ -1,7 +1,9 @@
+import Motion from '../components/Motion';
+import { ScrollView, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 // --- IMPORTAÇÃO DA IMAGE ADICIONADA AQUI ---
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Image } from 'react-native';
+
 import Button from '../components/Button';
 import Input from '../components/Input';
 
@@ -10,35 +12,35 @@ export default function RecuperarSenhaCodigo() {
   const router = useRouter();
 
   // Função chamada quando o usuario clica em "VERIFICAR CÓDIGO"
-  const handleVerificarCodigo = () => { 
+  const handleVerificarCodigo = () => {
     // Lógica para verificar o código entraria aqui
     console.log("Código de verificação inserido:", codigo);
     router.replace('/RecuperarSenha'); // Volta para a tela de redefinição de senha após verificar
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.innerContainer}>
-          
+
+        <ScrollView contentContainerStyle={styles.innerContainer} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}>
+
           {/* Espaço Superior - Agora com a Logo */}
           <View style={styles.header}>
-            <Image 
-              source={require('../img/Logo.png')} 
+            <Image
+              source={require('../img/Logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
           </View>
 
           {/* Parte Inferior - O Contentor Branco com a Curva Superior */}
-          <View style={styles.formContainer}>
+          <Motion style={styles.formContainer}>
             <Text style={styles.TextoBoasVindas}>Digite o código</Text>
 
             {/* Input: Código */}
-            <Input 
+            <Input
               iconName="key"
               placeholder="Código de verificação"
               value={codigo}
@@ -62,9 +64,9 @@ export default function RecuperarSenhaCodigo() {
               </TouchableOpacity>
             </View>
 
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
+          </Motion>
+        </ScrollView>
+
     </KeyboardAvoidingView>
   );
 }
@@ -75,25 +77,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   innerContainer: {
-    flex: 1,
+    width: '100%', maxWidth: 560, alignSelf: 'center',
+    flexGrow: 1,
   },
   header: {
-    flex: 0.4,
+    minHeight: 210,
+    paddingVertical: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
   // --- ESTILO DA LOGO ---
   logo: {
-    width: 200,  
-    height: 200,
+    width: 150,
+    height: 150,
   },
   formContainer: {
-    flex: 0.6,
+    flexGrow: 1,
     backgroundColor: '#DEF2F5',
-    borderTopLeftRadius: 100,
-    borderTopRightRadius: 100,
-    paddingHorizontal: 40,
-    paddingTop: 40,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingHorizontal: 28,
+    paddingTop: 32,
+    paddingBottom: 36,
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -5 },
@@ -118,7 +123,8 @@ const styles = StyleSheet.create({
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 30,
+    flexWrap: 'wrap',
+    marginTop: 24,
   },
   CriaContaLink: {
     color: '#1a73e8',

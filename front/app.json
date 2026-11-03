@@ -4,26 +4,24 @@
     "slug": "AppMedicamentos",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/img/Logo.png",
+    "icon": "./src/img/Logo-square.png",
     "scheme": "appmedicamentos",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./src/img/Logo.png",
-        "backgroundImage": "./src/img/Logo.png",
-        "monochromeImage": "./src/img/Logo.png"
+        "foregroundImage": "./src/img/Logo-square.png",
+        "backgroundImage": "./src/img/Logo-square.png",
+        "monochromeImage": "./src/img/Logo-square.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./src/img/Logo.png"
+      "favicon": "./src/img/Logo-square.png"
     },
     "plugins": [
       "expo-router",

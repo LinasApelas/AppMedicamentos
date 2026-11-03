@@ -37,18 +37,21 @@ class ApiService {
       requestOptions.body = JSON.stringify(body);
     }
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    requestOptions.signal = controller.signal;
     try {
       const response = await fetch(endpoint, requestOptions);
 
       // Se a resposta não é ok mas não tem corpo, retornar null ou string
       if (!response.ok) {
         let errorMessage = `Erro ${response.status}`;
+        const text = await response.text();
         try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
+          const errorData = JSON.parse(text);
+          errorMessage = `${errorMessage}: ${errorData.message || errorData.error || text}`;
         } catch {
-          const text = await response.text();
-          if (text) errorMessage = text;
+          if (text) errorMessage = `${errorMessage}: ${text}`;
         }
         throw new Error(errorMessage);
       }
@@ -64,6 +67,8 @@ class ApiService {
     } catch (error) {
       console.error(`Erro na requisição para ${endpoint}:`, error);
       throw error;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 

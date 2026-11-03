@@ -1,17 +1,17 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, View, Image, Text } from 'react-native'; 
+import { SafeAreaView, StyleSheet, View, Image, Text, ScrollView } from 'react-native';
 import Button from '../components/Button';
 import { router } from 'expo-router';
 
 export default function Termos() {
   return (
     <SafeAreaView style={styles.container}>
-      
+
       {/* Termos */}
       <View style={styles.bottomEstilo}>
         <Text style={styles.titulo}>Termos de Uso</Text>
-        
-        <View style={styles.textoContainer}>
+
+        <ScrollView style={styles.textoContainer}>
           <Text style={styles.textoTermos}>
             Bem-vindo ao SyncMed. Ao utilizar nosso aplicativo, você concorda com os seguintes termos:{"\n\n"}
             1. O aplicativo serve para auxílio no controle de medicação e não substitui orientações médicas.{"\n\n"}
@@ -20,23 +20,23 @@ export default function Termos() {
             4. O uso continuado do app implica na aceitação de futuras atualizações destes termos.{"\n\n"}
             Certifique-se de ler atentamente todas as diretrizes antes de prosseguir com o uso do aplicativo e cadastro.
           </Text>
-        </View>
+        </ScrollView>
       </View>
 
       {/* Rodape */}
       <View style={styles.rodapeContainer}>
-        
+
         {/* Imagem de fundo */}
-        <Image 
-          source={require('../img/image.png')} 
+        <Image
+          source={require('../img/image.png')}
           style={styles.imagemFundo}
-          resizeMode="contain" 
+          resizeMode="contain"
         />
 
         {/* Botao para aceitar os termos */}
         <View style={styles.Botao}>
-          <Button 
-            titulo="Aceitar e Continuar" 
+          <Button
+            titulo="Aceitar e Continuar"
             onPress={() => router.push('../Lembretes')}
           />
         </View>
@@ -48,20 +48,20 @@ export default function Termos() {
 }
 
 const styles = StyleSheet.create({
-  container: {  
+  container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  bottomEstilo: { 
-    height: '75%', 
-    backgroundColor: '#E2F1F8', 
+  bottomEstilo: {
+    height: '75%',
+    backgroundColor: '#E2F1F8',
     borderBottomLeftRadius: 60,
-    borderBottomRightRadius: 60, 
+    borderBottomRightRadius: 60,
     width: '100%',
     paddingHorizontal: 30,
     paddingTop: 50,
     paddingBottom: 20,
-    zIndex: 2,     
+    zIndex: 2,
     elevation: 5,
   },
   titulo: {
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   textoContainer: {
-    flex: 1, 
+    flex: 1,
   },
   textoTermos: {
     fontSize: 16,
@@ -81,19 +81,19 @@ const styles = StyleSheet.create({
     textAlign: 'justify',
   },
   rodapeContainer: {
-    flex: 1, 
-    justifyContent: 'flex-end', 
+    flex: 1,
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   imagemFundo: {
-    position: 'absolute', 
+    position: 'absolute',
     width: 450,
     height: 450,
-    bottom: -100, 
+    bottom: -100,
     zIndex: 0,
   },
   Botao: {
-    width: '50%',
-    marginBottom: 50, 
+    width: '85%',
+    marginBottom: 50,
   },
 });

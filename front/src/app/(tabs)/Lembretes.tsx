@@ -1,347 +1,100 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import * as Notifications from 'expo-notifications';
+import { MaterialIcons } from '@expo/vector-icons';
+import Calendario from '../../components/Calendario';
+import Button from '../../components/Button';
+import { dataLocal, horario, horariosDoDia, lerData, type Remedio } from '../../services/agenda';
+import { sincronizarLembretes } from '../../services/lembretes';
+import { atualizarAlarmes, cancelarAlarmes } from '../../services/alarmes';
 import { apiService } from '../../services/api';
-
-interface Remedio {
-  id: string;
-  username: string;
-  nome: string;
-  dose?: string;
-  intervalo?: number;
-  frequencia?: number;
-  data?: string;
-}
 
 export default function Lembretes() {
   const db = useSQLiteContext();
-
-  const [selectedDate, setSelectedDate] = useState('');
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [showMonthPicker, setShowMonthPicker] = useState(false);
-  const [takenDays, setTakenDays] = useState<Record<string, boolean>>({});
-
+  const [selectedDate, setSelectedDate] = useState(dataLocal());
   const [remedios, setRemedios] = useState<Remedio[]>([]);
-  const [tomadosHoje, setTomadosHoje] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
+  const [syncError, setSyncError] = useState(false);
+  const [mostrarTodos, setMostrarTodos] = useState(false);
 
-  const sincronizarMedicamentosServer = async () => {
-    try {
-      const medicamentos = await apiService.listarMedicamentos();
-      for (const medicamento of medicamentos) {
-        const localId = `server-${medicamento.id}`;
-        await db.runAsync(
-          `INSERT OR REPLACE INTO lembretes (id, username, nome, intervalo, frequencia, dose) VALUES (?, ?, ?, ?, ?, ?);`,
-          [
-            localId,
-            '',
-            medicamento.nome,
-            null,
-            null,
-            medicamento.descricao || medicamento.unidadeMedida || '',
-          ]
-        );
-      }
-    } catch (syncError) {
-      console.error('Erro ao sincronizar medicamentos do servidor:', syncError);
-    }
-  };
-
-  const lastNotificationResponse = Notifications.useLastNotificationResponse();
-
-  useEffect(() => {
-    if (
-      lastNotificationResponse &&
-      lastNotificationResponse.actionIdentifier === 'TOMAR'
-    ) {
-      const remedioId = lastNotificationResponse.notification.request.content.data?.id as string;
-      if (remedioId) {
-        marcarComoTomado(remedioId);
-      }
-    }
-  }, [lastNotificationResponse]);
-
-  const carregarMedicamentos = async () => {
+  const carregar = useCallback(async () => {
     setLoading(true);
     try {
-      await sincronizarMedicamentosServer();
-      const resultado = await db.getAllAsync('SELECT * FROM lembretes;');
-      setRemedios(resultado as Remedio[]);
-    } catch (error) {
-      console.error('Erro ao buscar medicamentos no SQLite:', error);
-      Alert.alert('Erro', 'Falha ao carregar lembretes locais.');
-    } finally {
-      setLoading(false);
-    }
-  };
+      setRemedios(await db.getAllAsync<Remedio>('SELECT * FROM lembretes ORDER BY nome'));
+      try { await sincronizarLembretes(db); setSyncError(false); }
+      catch { setSyncError(true); }
+      const items = await db.getAllAsync<Remedio>('SELECT * FROM lembretes ORDER BY nome');
+      setRemedios(items);
+      await atualizarAlarmes(items).catch(error => console.warn('Alarmes pendentes:', error));
+    } catch { Alert.alert('Erro', 'Não foi possível carregar os medicamentos.'); }
+    finally { setLoading(false); }
+  }, [db]);
 
-  useFocusEffect(
-    useCallback(() => {
-      carregarMedicamentos();
-    }, [])
-  );
+  useFocusEffect(useCallback(() => { void carregar(); }, [carregar]));
 
-  useEffect(() => {
-    const now = new Date();
-    setCurrentMonth(now);
-    const monthDays = getMonthDays(now);
-    if (monthDays.length) setSelectedDate(monthDays.find((d) => d.isToday)?.dateString ?? monthDays[0].dateString);
-  }, []);
+  const excluir = (item: Remedio) => Alert.alert('Excluir medicamento?', `Excluir ${item.nome} e seus alarmes?`, [
+    { text: 'Cancelar', style: 'cancel' },
+    { text: 'Excluir', style: 'destructive', onPress: async () => {
+      try {
+        if (item.serverId) await apiService.deletarMedicamento(item.serverId);
+        await cancelarAlarmes(item.id);
+        await db.runAsync('DELETE FROM lembretes WHERE id = ?', [item.id]);
+        await carregar();
+      } catch { Alert.alert('Erro', 'Não foi possível excluir. Verifique a conexão e tente novamente.'); }
+    } },
+  ]);
+  const programados = remedios.map(item => ({ item, doses: horariosDoDia(item, selectedDate) }))
+    .filter(entry => entry.doses.length > 0).sort((a, b) => a.doses[0].getTime() - b.doses[0].getTime());
+  const lista = mostrarTodos ? remedios.map(item => ({ item, doses: horariosDoDia(item, selectedDate) })) : programados;
+  const semAgenda = remedios.filter(item => !lerData(item.inicio || '') || !/^([01]\d|2[0-3]):[0-5]\d$/.test(item.dose || '') || !item.intervalo || !item.frequencia).length;
 
-  function pad(n: number) {
-    return n < 10 ? `0${n}` : `${n}`;
-  }
-
-  function getMonthDays(baseDate: Date) {
-    const year = baseDate.getFullYear();
-    const month = baseDate.getMonth();
-    const lastDay = new Date(year, month + 1, 0).getDate();
-    const names = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    const arr = [];
-    const today = new Date();
-    for (let d = 1; d <= lastDay; d++) {
-      const dt = new Date(year, month, d);
-      const dayNumber = dt.getDate();
-      const dateString = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dayNumber)}`;
-      arr.push({
-        date: dt,
-        dateString,
-        dayNumber,
-        dayShort: names[dt.getDay()],
-        isToday: dt.toDateString() === today.toDateString(),
-      });
-    }
-    return arr;
-  }
-
-  function getMonthName(d: Date) {
-    return d.toLocaleString('pt-BR', { month: 'long' }).toUpperCase();
-  }
-
-  function prevMonth() {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  }
-
-  function nextMonth() {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  }
-
-  function toggleTaken(dateString: string) {
-    setTakenDays((prev) => ({ ...prev, [dateString]: !prev[dateString] }));
-  }
-
-  const deletarLembreteLocal = async (id: string) => {
-    try {
-      const isServerItem = id.startsWith('server-');
-      if (isServerItem) {
-        const registroServidorId = Number(id.replace('server-', ''));
-        if (!Number.isNaN(registroServidorId)) {
-          await apiService.deletarMedicamento(registroServidorId);
-        }
-      }
-      await db.runAsync('DELETE FROM lembretes WHERE id = ?;', [id]);
-      carregarMedicamentos();
-    } catch (error) {
-      console.error('Erro ao deletar lembrete local:', error);
-      Alert.alert('Erro', 'Falha ao deletar lembrete. Tente novamente.');
-    }
-  };
-
-  const marcarComoTomado = (idRemedio: string) => {
-    setTomadosHoje((prev) => ({ ...prev, [idRemedio]: !prev[idRemedio] }));
-    const hoje = new Date();
-    const dateString = `${hoje.getFullYear()}-${pad(hoje.getMonth() + 1)}-${pad(hoje.getDate())}`;
-    setTakenDays((prev) => ({ ...prev, [dateString]: true }));
-  };
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => setShowMonthPicker((v) => !v)}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {showMonthPicker && (
-              <TouchableOpacity onPress={prevMonth} style={{ padding: 6 }}>
-                <MaterialIcons name="chevron-left" size={20} color="#12323A" />
-              </TouchableOpacity>
-            )}
-            <Text style={styles.month}>{getMonthName(currentMonth)} {currentMonth.getFullYear()}</Text>
-            {showMonthPicker && (
-              <TouchableOpacity onPress={nextMonth} style={{ padding: 6 }}>
-                <MaterialIcons name="chevron-right" size={20} color="#12323A" />
-              </TouchableOpacity>
-            )}
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.weekStripContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.weekStrip}>
-          {getMonthDays(currentMonth).map((d) => (
-            <TouchableOpacity
-              key={d.dateString}
-              style={[styles.pill, d.dateString === selectedDate && styles.pillSelected]}
-              onPress={() => setSelectedDate(d.dateString)}
-              onLongPress={() => toggleTaken(d.dateString)}
-            >
-              <Text style={styles.pillDay}>{d.dayShort}</Text>
-              <View style={[styles.pillCircle, d.dateString === selectedDate && styles.pillCircleSelected]}>
-                <Text style={[styles.pillNumber, d.dateString === selectedDate && styles.pillNumberSelected]}>{d.dayNumber}</Text>
-                {takenDays[d.dateString] && <View style={styles.takenDot} />}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Lembretes Locais</Text>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator size="large" color="#1a73e8" />
-        ) : remedios.length === 0 ? (
-          <Text style={styles.fonte}>Adicione lembretes em Adicionar.</Text>
-        ) : (
-          remedios.map((remedio) => (
-            <View key={remedio.id} style={styles.cardRemedio}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Text style={[styles.nomeRemedio, tomadosHoje[remedio.id] && { textDecorationLine: 'line-through', color: '#808080' }]}>
-                    {remedio.nome}
-                  </Text>
-                </View>
-                <TouchableOpacity onPress={() => deletarLembreteLocal(remedio.id)} style={{ padding: 4 }}>
-                  <MaterialIcons name="delete" size={24} color="#e74c3c" />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.detalheRemedio}>Para: {remedio.username || '(você)'}</Text>
-              <Text style={styles.detalheRemedio}>Próxima dose: {remedio.dose || 'Não informada'}</Text>
-              <Text style={styles.detalheRemedio}>Intervalo: {remedio.intervalo || 'Não informado'}</Text>
-              <Text style={styles.detalheRemedio}>Frequência: {remedio.frequencia || 'Não informada'}</Text>
-            </View>
-          ))
-        )}
-
-        <View style={{ height: 80 }} />
-      </ScrollView>
+  return <ScrollView style={styles.screen} contentContainerStyle={styles.container}
+    refreshControl={<RefreshControl refreshing={loading} onRefresh={carregar} />}>
+    <View style={styles.welcome}><Text style={styles.title}>Sua rotina de cuidados</Text><Text style={styles.text}>Selecione um dia para ver os horários programados.</Text></View>
+    <Calendario selectedDate={selectedDate} onDateSelected={date => { setSelectedDate(date); setMostrarTodos(false); }}
+      hasSchedule={date => remedios.some(item => horariosDoDia(item, date).length > 0)} />
+    <View style={styles.tabs}>
+      <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: !mostrarTodos }} style={[styles.tab, !mostrarTodos && styles.selected]} onPress={() => setMostrarTodos(false)}><Text style={styles.tabText}>Agenda do dia</Text></TouchableOpacity>
+      <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: mostrarTodos }} style={[styles.tab, mostrarTodos && styles.selected]} onPress={() => setMostrarTodos(true)}><Text style={styles.tabText}>Todos ({remedios.length})</Text></TouchableOpacity>
     </View>
-  );
+    <Text style={styles.section}>{mostrarTodos ? 'Medicamentos cadastrados' : `Programado para ${selectedDate.split('-').reverse().join('/')}`}</Text>
+    {syncError && <Text style={styles.notice}>Sem conexão com o servidor. Exibindo os dados salvos no aparelho.</Text>}
+    {semAgenda > 0 && <Text style={styles.notice}>{semAgenda} cadastro(s) sem programação completa. Abra “Todos” e edite para definir os horários.</Text>}
+    {lista.length === 0 && <View style={styles.card}><Text style={styles.text}>{loading ? 'Carregando…' : 'Nenhum medicamento programado para este dia.'}</Text></View>}
+    {lista.map(({ item, doses }) => <View key={item.id} style={styles.card}>
+      <View style={styles.row}><Text style={styles.name}>{item.nome}</Text>
+        <TouchableOpacity style={styles.action} accessibilityRole="button" accessibilityLabel={`Editar ${item.nome}`} onPress={() => router.push({ pathname: '/Adicionar', params: { id: item.id } })}><MaterialIcons name="edit" size={22} color="#1a73e8" /></TouchableOpacity>
+        <TouchableOpacity style={styles.action} accessibilityRole="button" accessibilityLabel={`Excluir ${item.nome}`} onPress={() => excluir(item)}><MaterialIcons name="delete-outline" size={22} color="#c0392b" /></TouchableOpacity>
+      </View>
+      <Text style={styles.text}>Para: {item.username || 'Você'}</Text>
+      <Text style={styles.text}>{item.inicio ? `Início: ${item.inicio.split('-').reverse().join('/')}` : 'Data de início não definida'}</Text>
+      <Text style={styles.text}>{item.intervalo ? `A cada ${item.intervalo}h · ${item.frequencia || '?'} dias` : 'Edite para completar a programação'}</Text>
+      <View style={styles.times}>{doses.map(date => <Text key={date.getTime()} style={styles.time}>{horario(date)}</Text>)}</View>
+      {!doses.length && <Text style={styles.notice}>Sem dose prevista para o dia selecionado.</Text>}
+      {!!item.pendente && <Text style={styles.notice}>Sincronização pendente</Text>}
+    </View>)}
+    <Button titulo="Adicionar medicamento" icon="plus" onPress={() => router.push({ pathname: '/Adicionar', params: { id: '' } })} />
+    <Text style={styles.footnote}>Os horários seguem o fuso do aparelho. A fila dos próximos alarmes é renovada ao abrir esta agenda; mantenha as notificações permitidas.</Text>
+  </ScrollView>;
 }
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingTop: 44,
-    paddingBottom: 8,
-  },
-  month: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#12323A',
-  },
-  weekStripContainer: {
-    paddingHorizontal: 10,
-    paddingBottom: 8,
-  },
-  weekStrip: {
-    paddingLeft: 10,
-    paddingRight: 10,
-    alignItems: 'center',
-  },
-  pill: {
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  pillDay: {
-    fontSize: 12,
-    color: '#12323A',
-    marginBottom: 6,
-  },
-  pillCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: '#E6F6F8',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-  },
-  pillCircleSelected: {
-    backgroundColor: '#1a73e8',
-  },
-  pillNumber: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#12323A',
-  },
-  pillNumberSelected: {
-    color: '#fff',
-  },
-  pillSelected: {},
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  sectionHeader: {
-    marginTop: 30,
-    marginBottom: 15,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1B3B45',
-  },
-  takenDot: {
-    position: 'absolute',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#2E7D32',
-    right: 4,
-    bottom: 4,
-    borderWidth: 1,
-    borderColor: '#fff',
-  },
-  fonte: {
-    fontSize: 16,
-    color: '#808080',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  cardRemedio: {
-    backgroundColor: '#F7F9F9',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 20,
-    borderWidth: 0.5,
-    borderColor: '#000000',
-  },
-  nomeRemedio: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  detalheRemedio: {
-    fontSize: 16,
-    color: '#808080',
-    marginTop: 4,
-  },
-  icon: {
-    marginRight: 10,
-  },
+  screen: { flex: 1, backgroundColor: '#fff' },
+  container: { width: '100%', maxWidth: 560, alignSelf: 'center', padding: 20, paddingBottom: 32 },
+  welcome: { backgroundColor: '#E6F6F8', padding: 20, borderRadius: 24, marginBottom: 16 },
+  title: { fontSize: 24, lineHeight: 30, includeFontPadding: false, fontWeight: '700', color: '#12323A', marginBottom: 8 },
+  text: { fontSize: 15, lineHeight: 22, includeFontPadding: false, color: '#52656b', marginTop: 4 },
+  tabs: { flexDirection: 'row', gap: 8, marginVertical: 16 },
+  tab: { flex: 1, minHeight: 48, padding: 10, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: '#f0f4f5' },
+  selected: { backgroundColor: '#9DD7E2' },
+  tabText: { fontSize: 14, lineHeight: 20, fontWeight: '600', color: '#12323A', includeFontPadding: false },
+  section: { fontSize: 20, lineHeight: 26, fontWeight: '700', color: '#12323A', marginBottom: 12 },
+  card: { backgroundColor: '#F7F9F9', borderWidth: 1, borderColor: '#E2F1F8', padding: 16, borderRadius: 20, marginBottom: 16 },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  name: { flex: 1, fontSize: 20, lineHeight: 26, includeFontPadding: false, fontWeight: '700', color: '#12323A' },
+  action: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  times: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  time: { fontSize: 16, lineHeight: 22, includeFontPadding: false, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: '#E2F1F8', color: '#12323A' },
+  notice: { fontSize: 14, lineHeight: 20, color: '#80601b', marginBottom: 10, marginTop: 6 },
+  footnote: { fontSize: 12, lineHeight: 18, color: '#52656b', marginTop: 16 },
 });
