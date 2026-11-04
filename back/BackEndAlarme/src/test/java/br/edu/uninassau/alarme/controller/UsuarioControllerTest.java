@@ -6,7 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
+import br.edu.uninassau.alarme.service.UsuarioService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
@@ -19,6 +20,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -30,18 +34,20 @@ class UsuarioControllerTest {
     @Mock
     private UsuarioRepository repository;
 
-    @InjectMocks
     private UsuarioController controller;
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     private MockMvc mvc;
 
     @BeforeEach
     void setUp() {
+        controller = new UsuarioController(repository, new UsuarioService(repository, encoder));
         mvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
     @Test
     void cadastroAceitaSenhaJsonERetornaMensagemAtualCom201() throws Exception {
+        when(repository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
         mvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding("UTF-8")
@@ -57,13 +63,14 @@ class UsuarioControllerTest {
         Usuario recebido = captor.getValue();
         assertEquals("Ana", recebido.getNome());
         assertEquals("ana@example.com", recebido.getEmail());
-        assertEquals("senha-teste", recebido.getSenha());
+        assertTrue(encoder.matches("senha-teste", recebido.getSenha()), "Senha deve ser persistida como BCrypt");
+        assertFalse("senha-teste".equals(recebido.getSenha()), "Não persistir senha original");
         assertEquals("America/Fortaleza", recebido.getFusoHorario());
     }
 
     @Test
     void loginValidoAceitaSenhaJsonERetornaUsuarioSemSenha() throws Exception {
-        when(repository.findByEmailAndSenha("ana@example.com", "senha-teste"))
+        when(repository.findByEmail("ana@example.com"))
                 .thenReturn(Optional.of(usuario()));
 
         mvc.perform(post("/usuarios/login")
@@ -80,13 +87,13 @@ class UsuarioControllerTest {
                 .andExpect(jsonPath("$.perfis").isArray())
                 .andExpect(jsonPath("$..senha").doesNotExist());
 
-        verify(repository).findByEmailAndSenha("ana@example.com", "senha-teste");
+        verify(repository).findByEmail("ana@example.com");
     }
 
     @Test
     void loginInvalidoRetorna401SemCorpo() throws Exception {
-        when(repository.findByEmailAndSenha("ana@example.com", "incorreta"))
-                .thenReturn(Optional.empty());
+        when(repository.findByEmail("ana@example.com"))
+                .thenReturn(Optional.of(usuario()));
 
         mvc.perform(post("/usuarios/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -96,7 +103,7 @@ class UsuarioControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().string(""));
 
-        verify(repository).findByEmailAndSenha("ana@example.com", "incorreta");
+        verify(repository).findByEmail("ana@example.com");
     }
 
     @Test
@@ -115,7 +122,7 @@ class UsuarioControllerTest {
     }
 
     private Usuario usuario() {
-        Usuario usuario = new Usuario(1L, "Ana", "ana@example.com", "senha-teste", "America/Fortaleza");
+        Usuario usuario = new Usuario(1L, "Ana", "ana@example.com", encoder.encode("senha-teste"), "America/Fortaleza");
         usuario.setPerfis(List.of());
         return usuario;
     }

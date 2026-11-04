@@ -89,7 +89,8 @@ class UsuarioServiceTest {
         assertEquals(1, result.perfis().size());
         assertEquals("Principal", result.perfis().get(0).nome());
         noSecrets(result, OLD, stored.getSenha());
-        verify(repository, never()).findByEmailAndSenha(any(), any());
+        verify(repository).findByEmail("ana@example.com");
+        verifyNoMoreInteractions(repository);
         verify(repository, never()).save(any());
     }
 
@@ -181,7 +182,7 @@ class UsuarioServiceTest {
         assertTrue(service.autenticar("ana@example.com", OLD).isEmpty());
         assertTrue(service.autenticar("ana@example.com", NEW).isPresent());
         noSecrets(output, NEW, stored.getSenha());
-        verify(repository, never()).findByEmailAndSenha(any(), any());
+        verify(repository, times(2)).findByEmail("ana@example.com");
     }
 
     @Test

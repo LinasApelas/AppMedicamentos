@@ -5,7 +5,7 @@ import br.edu.uninassau.alarme.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import br.edu.uninassau.alarme.service.UsuarioService;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
-/** Expected PUT contract, intentionally red until BCrypt integration. No database or request logging. */
+/** PUT contract exercised with the real service and BCrypt, without a database. */
 @ExtendWith(MockitoExtension.class)
 class UsuarioAtualizacaoContractTest {
     private static final String OLD_PASSWORD = "anterior-ficticia";
@@ -32,7 +32,6 @@ class UsuarioAtualizacaoContractTest {
 
     @Mock
     private UsuarioRepository repository;
-    @InjectMocks
     private UsuarioController controller;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -42,6 +41,8 @@ class UsuarioAtualizacaoContractTest {
 
     @BeforeEach
     void setUp() {
+        controller = new UsuarioController(repository, new UsuarioService(repository, encoder));
+        lenient().when(repository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
         mvc = MockMvcBuilders.standaloneSetup(controller).build();
         originalHash = encoder.encode(OLD_PASSWORD);
         stored = new Usuario(1L, "Ana", "ana@example.com", originalHash, "America/Fortaleza");
@@ -73,13 +74,7 @@ class UsuarioAtualizacaoContractTest {
     @Test
     void trocaInvalidaSenhaAnteriorEMantemLoginComNovaSenha() throws Exception {
         existingUser();
-        // Model the existing equality-based query, not a simulated BCrypt login.
-        // The email-only lookup is also available for the future implementation.
-        lenient().when(repository.findByEmailAndSenha(anyString(), anyString())).thenAnswer(invocation ->
-                Objects.equals(stored.getEmail(), invocation.getArgument(0))
-                        && Objects.equals(stored.getSenha(), invocation.getArgument(1))
-                        ? Optional.of(stored) : Optional.empty());
-        lenient().when(repository.findByEmail("ana@example.com")).thenAnswer(invocation -> Optional.of(stored));
+        when(repository.findByEmail("ana@example.com")).thenAnswer(invocation -> Optional.of(stored));
 
         assertEquals(200, update(1L, NEW_PASSWORD).getResponse().getStatus());
         assertAll(
