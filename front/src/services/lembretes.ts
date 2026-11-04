@@ -1,5 +1,5 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
-import { apiService } from './api';
+import { ApiError, apiService } from './api';
 import { dataLocal, type Remedio } from './agenda';
 
 export async function inicializarBanco(db: SQLiteDatabase) {
@@ -20,8 +20,14 @@ export async function inicializarBanco(db: SQLiteDatabase) {
 export async function enviarLembrete(db: SQLiteDatabase, item: Remedio) {
   const payload = { nome: item.nome, unidadeMedida: 'porção', descricao: `Intervalo: ${item.intervalo}h, Frequência: ${item.frequencia} dias` };
   let serverId = item.serverId;
-  if (serverId) await apiService.atualizarMedicamento(serverId, payload);
-  else serverId = (await apiService.criarMedicamento(payload)).id;
+  if (serverId) {
+    try { await apiService.atualizarMedicamento(serverId, payload); }
+    catch (error) {
+      if (!(error instanceof ApiError) || error.status !== 404) throw error;
+      // O cadastro local foi editado, mas seu antigo ID não existe mais.
+      serverId = (await apiService.criarMedicamento(payload)).id;
+    }
+  } else serverId = (await apiService.criarMedicamento(payload)).id;
   await db.runAsync('UPDATE lembretes SET serverId = ?, pendente = 0 WHERE id = ?', [serverId!, item.id]);
 }
 

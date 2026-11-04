@@ -5,6 +5,13 @@
 
 import API_CONFIG from './config';
 
+export class ApiError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 export interface FetchOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   body?: any;
@@ -53,7 +60,7 @@ class ApiService {
         } catch {
           if (text) errorMessage = `${errorMessage}: ${text}`;
         }
-        throw new Error(errorMessage);
+        throw new ApiError(response.status, errorMessage);
       }
 
       // Tentar parsear como JSON
@@ -64,9 +71,6 @@ class ApiService {
 
       // Se não for JSON, retornar o texto
       return (await response.text()) as unknown as T;
-    } catch (error) {
-      console.error(`Erro na requisição para ${endpoint}:`, error);
-      throw error;
     } finally {
       clearTimeout(timeout);
     }
@@ -161,9 +165,13 @@ class ApiService {
   }
 
   async deletarMedicamento(id: number): Promise<string> {
-    return this.request(`${API_CONFIG.ENDPOINTS.MEDICAMENTOS}/${id}`, {
-      method: 'DELETE',
-    });
+    try {
+      return await this.request(`${API_CONFIG.ENDPOINTS.MEDICAMENTOS}/${id}`, { method: 'DELETE' });
+    } catch (error) {
+      // Já excluído no servidor: a exclusão local ainda deve prosseguir.
+      if (error instanceof ApiError && error.status === 404) return '';
+      throw error;
+    }
   }
 
   // ===== TRATAMENTOS =====

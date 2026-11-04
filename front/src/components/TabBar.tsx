@@ -25,7 +25,7 @@ interface ItemProps {
 
 function TabItem({ name, focused, reduced, fontsReady, onPress, onLongPress, accessibilityLabel, testID }: ItemProps) {
   const item = items[name] ?? { label: name, icon: 'circle' as const, activeIcon: 'circle' as const };
-  const primary = name === 'Adicionar';
+
   const [selection] = useState(() => new Animated.Value(focused ? 1 : 0));
   const [press] = useState(() => new Animated.Value(1));
 
@@ -46,17 +46,19 @@ function TabItem({ name, focused, reduced, fontsReady, onPress, onLongPress, acc
       accessibilityRole="tab" accessibilityState={{ selected: focused }}
       accessibilityLabel={accessibilityLabel ?? item.label} testID={testID}>
       <Animated.View pointerEvents="none" style={[styles.item, { transform: [{ scale: press }] }]}>
-        <Animated.View style={[
-          primary ? styles.primaryIcon : styles.icon,
-          primary && focused && styles.primarySelected,
-          { transform: [{ translateY: selection.interpolate({ inputRange: [0, 1], outputRange: [0, reduced ? 0 : -3] }) }] },
-        ]}>
-          {fontsReady ? <MaterialIcons name={focused ? item.activeIcon : item.icon} size={primary ? 32 : 27}
-            color={primary ? '#12323A' : focused ? '#1a73e8' : '#808080'} /> :
-            <Text style={styles.fallback}>{primary ? '+' : name === 'Perfil' ? 'P' : 'L'}</Text>}
+        <Animated.View style={[styles.icon, {
+          transform: [{ translateY: selection.interpolate({ inputRange: [0, 1], outputRange: [0, -26] }) }],
+        }]}>
+          <Animated.View style={[styles.halo, { opacity: selection }]} />
+          <Animated.View style={[styles.bubble, { opacity: selection,
+            transform: [{ scale: selection.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }],
+          }]} />
+          {fontsReady ? <MaterialIcons style={styles.glyph} name={focused ? item.activeIcon : item.icon} size={28}
+            color={focused ? '#12323A' : '#808080'} /> :
+            <Text style={styles.fallback}>{name === 'Adicionar' ? '+' : name === 'Perfil' ? 'P' : 'L'}</Text>}
         </Animated.View>
-        <Text style={[styles.label, focused && styles.labelSelected]}>{item.label}</Text>
-        <Animated.View style={[styles.dot, { opacity: selection, transform: [{ scale: selection.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }] }]} />
+        <Animated.Text style={[styles.label, focused && styles.labelSelected,
+          { transform: [{ translateY: selection.interpolate({ inputRange: [0, 1], outputRange: [0, -8] }) }] }]}>{item.label}</Animated.Text>
       </Animated.View>
     </Pressable>
   );
@@ -65,9 +67,9 @@ function TabItem({ name, focused, reduced, fontsReady, onPress, onLongPress, acc
 export default function TabBar({ state, descriptors, emitter, navigateToTab, insets }: BottomTabBarProps) {
   const [fontsLoaded, fontError] = useFonts(MaterialIcons.font);
   const reduced = useReducedMotion();
-  const [width, setWidth] = useState(0);
+
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const [position] = useState(() => new Animated.Value(state.index));
+
 
   useEffect(() => {
     const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardVisible(true));
@@ -75,21 +77,12 @@ export default function TabBar({ state, descriptors, emitter, navigateToTab, ins
     return () => { show.remove(); hide.remove(); };
   }, []);
 
-  useEffect(() => {
-    if (reduced) { position.setValue(state.index); return; }
-    const animation = Animated.spring(position, { toValue: state.index, damping: 22, stiffness: 220, mass: 0.9, useNativeDriver: true });
-    animation.start();
-    return () => animation.stop();
-  }, [position, reduced, state.index]);
-
   if (keyboardVisible) return null;
-  const slotWidth = width / state.routes.length;
   return (
     <View style={[styles.safeArea, { paddingBottom: Math.max(insets.bottom, 12), paddingLeft: Math.max(insets.left, 16), paddingRight: Math.max(insets.right, 16) }]}>
       <View style={styles.shell}>
-        <View style={styles.track} onLayout={event => setWidth(event.nativeEvent.layout.width)}>
-          {width > 0 && <Animated.View pointerEvents="none" style={[styles.indicator, { width: slotWidth - 8,
-            transform: [{ translateX: Animated.multiply(position, slotWidth) }] }]} />}
+        <View pointerEvents="none" style={styles.surface} />
+        <View style={styles.track}>
           {state.routes.map((route, index) => {
             const focused = state.index === index;
             const options = descriptors[route.key].options;
@@ -112,21 +105,21 @@ export default function TabBar({ state, descriptors, emitter, navigateToTab, ins
 }
 
 const styles = StyleSheet.create({
-  safeArea: { backgroundColor: '#ffffff', paddingTop: 20 },
-  shell: { width: '100%', maxWidth: 520, alignSelf: 'center', borderRadius: 30, backgroundColor: '#ffffff',
-    borderWidth: 1, borderColor: '#E2F1F8', paddingHorizontal: 6, paddingVertical: 6,
+  safeArea: { backgroundColor: '#ffffff', paddingTop: 6 },
+  shell: { width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 6 },
+  surface: { position: 'absolute', top: 26, bottom: 0, left: 0, right: 0, borderRadius: 36, backgroundColor: '#ffffff',
+    borderWidth: 1, borderColor: '#E2F1F8',
     shadowColor: '#12323A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 20, elevation: 8 },
-  track: { flexDirection: 'row', position: 'relative' },
-  indicator: { position: 'absolute', top: 0, bottom: 0, left: 4, borderRadius: 24, backgroundColor: '#E2F1F8' },
-  touchTarget: { flex: 1, minHeight: 76, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
-  item: { width: '100%', alignItems: 'center', justifyContent: 'center', gap: 3 },
-  icon: { width: 44, height: 32, alignItems: 'center', justifyContent: 'center' },
-  primaryIcon: { width: 56, height: 48, marginTop: -18, marginBottom: 2, borderRadius: 20,
-    backgroundColor: '#9DD7E2', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#ffffff',
-    shadowColor: '#12323A', shadowOpacity: 0.14, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
-  primarySelected: { borderColor: '#9DD7E2' },
+  track: { flexDirection: 'row', position: 'relative', zIndex: 1, elevation: 9 },
+  touchTarget: { flex: 1, minHeight: 102, alignItems: 'center', justifyContent: 'center', paddingTop: 32, paddingBottom: 6 },
+  item: { width: '100%', alignItems: 'center', justifyContent: 'center', gap: 2 },
+  icon: { width: 52, height: 44, alignItems: 'center', justifyContent: 'center' },
+  glyph: { zIndex: 2, elevation: 5 },
+  halo: { position: 'absolute', width: 76, height: 76, borderRadius: 38, backgroundColor: '#ffffff' },
+  bubble: { position: 'absolute', width: 58, height: 58, borderRadius: 29,
+    backgroundColor: '#9DD7E2', borderWidth: 1, borderColor: '#E2F1F8',
+    shadowColor: '#12323A', shadowOpacity: 0.18, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
   label: { color: '#808080', fontSize: 11, lineHeight: 16, includeFontPadding: false, fontWeight: '600', textAlign: 'center', paddingHorizontal: 2 },
   labelSelected: { color: '#1a73e8', fontWeight: '700' },
-  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#1a73e8', marginTop: 2 },
   fallback: { fontSize: 24, fontWeight: '700', color: '#12323A' },
 });
