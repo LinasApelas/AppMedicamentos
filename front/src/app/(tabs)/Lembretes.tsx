@@ -9,9 +9,11 @@ import { dataLocal, horario, horariosDoDia, lerData, type Remedio } from '../../
 import { sincronizarLembretes } from '../../services/lembretes';
 import { atualizarAlarmes, cancelarAlarmes } from '../../services/alarmes';
 import { apiService } from '../../services/api';
+import { capturarSessaoLocal, sessaoLocalAtual, validarSessaoLocal } from '../../services/sessaoLocal';
 
 export default function Lembretes() {
   const db = useSQLiteContext();
+  const [sessao] = useState(capturarSessaoLocal);
   const [selectedDate, setSelectedDate] = useState(dataLocal());
   const [remedios, setRemedios] = useState<Remedio[]>([]);
   const [loading, setLoading] = useState(false);
@@ -19,17 +21,22 @@ export default function Lembretes() {
   const [mostrarTodos, setMostrarTodos] = useState(false);
 
   const carregar = useCallback(async () => {
+    if (!sessaoLocalAtual(sessao)) return;
     setLoading(true);
     try {
-      setRemedios(await db.getAllAsync<Remedio>('SELECT * FROM lembretes ORDER BY nome'));
-      try { await sincronizarLembretes(db); setSyncError(false); }
-      catch { setSyncError(true); }
+      const locais = await db.getAllAsync<Remedio>('SELECT * FROM lembretes ORDER BY nome');
+      validarSessaoLocal(sessao);
+      setRemedios(locais);
+      try { await sincronizarLembretes(db, sessao); if (sessaoLocalAtual(sessao)) setSyncError(false); }
+      catch { if (sessaoLocalAtual(sessao)) setSyncError(true); }
+      validarSessaoLocal(sessao);
       const items = await db.getAllAsync<Remedio>('SELECT * FROM lembretes ORDER BY nome');
+      validarSessaoLocal(sessao);
       setRemedios(items);
-      await atualizarAlarmes(items).catch(error => console.warn('Alarmes pendentes:', error));
-    } catch { Alert.alert('Erro', 'Não foi possível carregar os medicamentos.'); }
-    finally { setLoading(false); }
-  }, [db]);
+      await atualizarAlarmes(items, false, sessao).catch(() => undefined);
+    } catch { if (sessaoLocalAtual(sessao)) Alert.alert('Erro', 'Não foi possível carregar os medicamentos.'); }
+    finally { if (sessaoLocalAtual(sessao)) setLoading(false); }
+  }, [db, sessao]);
 
   useFocusEffect(useCallback(() => { void carregar(); }, [carregar]));
 
@@ -37,11 +44,14 @@ export default function Lembretes() {
     { text: 'Cancelar', style: 'cancel' },
     { text: 'Excluir', style: 'destructive', onPress: async () => {
       try {
+        validarSessaoLocal(sessao);
         if (item.serverId) await apiService.deletarMedicamento(item.serverId);
-        await cancelarAlarmes(item.id);
+        validarSessaoLocal(sessao);
+        await cancelarAlarmes(item.id, sessao);
+        validarSessaoLocal(sessao);
         await db.runAsync('DELETE FROM lembretes WHERE id = ?', [item.id]);
         await carregar();
-      } catch { Alert.alert('Erro', 'Não foi possível excluir. Verifique a conexão e tente novamente.'); }
+      } catch { if (sessaoLocalAtual(sessao)) Alert.alert('Erro', 'Não foi possível excluir. Verifique a conexão e tente novamente.'); }
     } },
   ]);
   const programados = remedios.map(item => ({ item, doses: horariosDoDia(item, selectedDate) }))

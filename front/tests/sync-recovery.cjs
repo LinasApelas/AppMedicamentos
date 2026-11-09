@@ -12,20 +12,30 @@ function load(file, imports, globals = {}) {
 }
 (async () => {
   let status = 404;
-  const config = { ENDPOINTS: { MEDICAMENTOS: 'http://test/medicamentos' } };
-  const api = load('src/services/api.ts', { './config': { __esModule: true, default: config } }, {
-    fetch: async () => new Response('Medicamento não encontrado!', { status }),
+  const config = { ENDPOINTS: { MEDICAMENTOS: 'http://test/medicamentos', LOGIN: 'http://test/login', SESSAO: 'http://test/me' } };
+  const api = load('src/services/api.ts', {
+    './config': { __esModule: true, default: config },
+    './session-storage': { sessionStorage: { logoutPendente: async () => false } },
+  }, {
+    fetch: async url => url.includes('/medicamentos')
+      ? new Response('Medicamento não encontrado!', { status })
+      : Response.json({ id: 1, nome: 'Conta A', email: 'a@example.com' }),
   });
+  await api.apiService.fazerLogin({ email: 'a@example.com', senha: 'senha-do-teste' });
   assert.equal(await api.apiService.deletarMedicamento(2), '');
   status = 500;
   await assert.rejects(api.apiService.deletarMedicamento(2), e => e instanceof api.ApiError && e.status === 500);
   let putStatus = 404;
   const calls = [];
   const mockApi = { ...api, apiService: {
+    requireUserId: () => 1,
+    getSessionVersion: () => 1,
+    isSessionCurrent: version => version === 1,
     atualizarMedicamento: async (id) => { calls.push(['PUT', id]); if (putStatus) throw new api.ApiError(putStatus, 'error'); },
     criarMedicamento: async () => { calls.push(['POST']); return { id: 9 }; },
   } };
-  const service = load('src/services/lembretes.ts', { './api': mockApi, './agenda': {} });
+  const session = load('src/services/sessaoLocal.ts', { './api': mockApi });
+  const service = load('src/services/lembretes.ts', { './api': mockApi, './agenda': {}, './sessaoLocal': session });
   const writes = [];
   const db = { runAsync: async (...args) => writes.push(args) };
   const item = { id: 'local', serverId: 2, nome: 'Teste', intervalo: 8, frequencia: 3 };

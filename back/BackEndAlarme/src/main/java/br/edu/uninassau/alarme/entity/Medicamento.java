@@ -1,6 +1,7 @@
 package br.edu.uninassau.alarme.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,12 @@ public class Medicamento {
     private String unidadeMedida;
 
     private String descricao;
+
+    // Nullable preserves existing rows; unowned legacy data is not assigned by guessing.
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    @JsonIgnore
+    private Usuario usuario;
 
     @OneToMany(mappedBy = "medicamento", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Tratamento> tratamentos = new ArrayList<>();
@@ -40,4 +47,6 @@ public class Medicamento {
     public void setUnidadeMedida(String unidadeMedida) { this.unidadeMedida = unidadeMedida; }
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
+    public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 }

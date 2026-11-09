@@ -16,6 +16,8 @@ export const API_CONFIG = {
     // Usuarios
     USUARIOS: `${API_BASE_URL}/usuarios`,
     LOGIN: `${API_BASE_URL}/usuarios/login`,
+    SESSAO: `${API_BASE_URL}/usuarios/me`,
+    LOGOUT: `${API_BASE_URL}/usuarios/logout`,
     
     // Medicamentos
     MEDICAMENTOS: `${API_BASE_URL}/medicamentos`,

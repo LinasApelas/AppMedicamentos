@@ -4,6 +4,15 @@
  */
 
 import API_CONFIG from './config';
+import { sessionStorage } from './session-storage';
+
+export interface UsuarioAutenticado {
+  id: number;
+  nome: string;
+  email: string;
+  fusoHorario?: string;
+  perfis?: { id: number; nome: string; corAvatar?: string }[];
+}
 
 export class ApiError extends Error {
   constructor(public readonly status: number, message: string) {
@@ -19,13 +28,47 @@ export interface FetchOptions {
 }
 
 class ApiService {
-  public currentUser: any | null = null;
+  private user: UsuarioAutenticado | null = null;
+  private sessionVersion = 0;
+  private listeners = new Set<() => void>();
+  private requests = new Set<AbortController>();
+  private authQueue: Promise<unknown> = Promise.resolve();
+
+  get currentUser() { return this.user; }
+  getSessionVersion() { return this.sessionVersion; }
+  isSessionCurrent(version: number) { return version === this.sessionVersion && this.user !== null; }
+  requireUserId() {
+    if (!this.user) throw new ApiError(401, 'Faça login para continuar.');
+    return this.user.id;
+  }
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    return () => { this.listeners.delete(listener); };
+  };
+
+  private setUser(user: UsuarioAutenticado | null, invalidate = false) {
+    if (invalidate || this.user?.id !== user?.id) {
+      this.sessionVersion++;
+      for (const controller of this.requests) controller.abort();
+    }
+    this.user = user;
+    for (const listener of this.listeners) listener();
+  }
+
+  private authOperation<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.authQueue.then(operation, operation);
+    this.authQueue = result.catch(() => undefined);
+    return result;
+  }
 
 // realiza uma chamada http generica
   private async request<T>(
     endpoint: string,
-    options: FetchOptions = {}
+    options: FetchOptions = {},
+    publicRequest = false
   ): Promise<T> {
+    const version = this.sessionVersion;
+    if (!publicRequest) this.requireUserId();
     const {
       method = 'GET',
       body,
@@ -34,8 +77,11 @@ class ApiService {
 
     const requestOptions: RequestInit = {
       method,
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        'X-SyncMed-Client': '1',
+        ...(!publicRequest ? { 'X-SyncMed-User': String(this.requireUserId()) } : {}),
         ...headers,
       },
     };
@@ -45,13 +91,16 @@ class ApiService {
     }
 
     const controller = new AbortController();
+    if (!publicRequest) this.requests.add(controller);
     const timeout = setTimeout(() => controller.abort(), 10000);
     requestOptions.signal = controller.signal;
     try {
       const response = await fetch(endpoint, requestOptions);
+      if (version !== this.sessionVersion) throw new ApiError(401, 'A sessão mudou.');
 
       // Se a resposta não é ok mas não tem corpo, retornar null ou string
       if (!response.ok) {
+        if (response.status === 401 && !publicRequest) this.setUser(null, true);
         let errorMessage = `Erro ${response.status}`;
         const text = await response.text();
         try {
@@ -66,13 +115,18 @@ class ApiService {
       // Tentar parsear como JSON
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
-        return await response.json();
+        const result = await response.json();
+        if (version !== this.sessionVersion) throw new ApiError(401, 'A sessão mudou.');
+        return result;
       }
 
       // Se não for JSON, retornar o texto
-      return (await response.text()) as unknown as T;
+      const result = await response.text();
+      if (version !== this.sessionVersion) throw new ApiError(401, 'A sessão mudou.');
+      return result as unknown as T;
     } finally {
       clearTimeout(timeout);
+      this.requests.delete(controller);
     }
   }
 
@@ -86,23 +140,60 @@ class ApiService {
     return this.request(API_CONFIG.ENDPOINTS.USUARIOS, {
       method: 'POST',
       body: userData,
-    });
+    }, true);
   }
 
   async fazerLogin(credentials: {
     email: string;
     senha: string;
-  }): Promise<any> {
-    const usuario = await this.request(API_CONFIG.ENDPOINTS.LOGIN, {
-      method: 'POST',
-      body: credentials,
+  }): Promise<UsuarioAutenticado> {
+    return this.authOperation(async () => {
+      this.setUser(null, true);
+      await this.concluirLogoutPendente();
+      const usuario = await this.request<UsuarioAutenticado>(API_CONFIG.ENDPOINTS.LOGIN, {
+        method: 'POST',
+        body: credentials,
+      }, true);
+      // Confirma que o cliente devolve o cookie e que o servidor reconhece a sessão.
+      const confirmado = await this.request<UsuarioAutenticado>(API_CONFIG.ENDPOINTS.SESSAO, {}, true);
+      if (confirmado.id !== usuario.id) throw new ApiError(401, 'Não foi possível confirmar a sessão.');
+      this.setUser(confirmado);
+      return confirmado;
     });
-    this.currentUser = usuario;
-    return usuario;
   }
 
-  logout() {
-    this.currentUser = null;
+  private async concluirLogoutPendente() {
+    if (await sessionStorage.logoutPendente()) {
+      await this.request(API_CONFIG.ENDPOINTS.LOGOUT, { method: 'POST' }, true);
+      await sessionStorage.concluirLogout();
+    }
+  }
+
+  restaurarSessao(): Promise<UsuarioAutenticado | null> {
+    return this.authOperation(async () => {
+      if (await sessionStorage.logoutPendente()) {
+        this.setUser(null, true);
+        await this.concluirLogoutPendente();
+        return null;
+      }
+      try {
+        const usuario = await this.request<UsuarioAutenticado>(API_CONFIG.ENDPOINTS.SESSAO, {}, true);
+        this.setUser(usuario);
+        return usuario;
+      } catch (error) {
+        this.setUser(null);
+        if (error instanceof ApiError && error.status === 401) return null;
+        throw error;
+      }
+    });
+  }
+
+  logout(): Promise<void> {
+    return this.authOperation(async () => {
+      await sessionStorage.marcarLogout();
+      this.setUser(null, true);
+      await this.concluirLogoutPendente();
+    });
   }
 
   async listarUsuarios(): Promise<any[]> {

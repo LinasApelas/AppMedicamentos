@@ -1,45 +1,26 @@
 import Motion from '../../components/Motion';
-import { ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
-import { useRouter } from 'expo-router';
 import Button from '../../components/Button';
-import { apiService } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Perfil() {
-  const router = useRouter();
-  const [user, setUser] = useState(apiService.currentUser);
+  const { user, error, logout, refresh } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user) {
-      setLoading(true);
-      apiService.listarUsuarios()
-        .then((usuarios) => {
-          if (usuarios.length > 0) {
-            setUser(usuarios[0]);
-          } else {
-            setError('Nenhum usuário encontrado.');
-          }
-        })
-        .catch((err) => {
-          console.error('Erro ao carregar perfil:', err);
-          setError('Erro ao carregar informações do perfil.');
-        })
-        .finally(() => setLoading(false));
-    }
-  }, [user]);
-
-  const handleLogout = () => {
-    apiService.logout();
-    router.replace('/login');
+  const handleLogout = async () => {
+    if (loading) return;
+    setLoading(true);
+    try { await logout(); }
+    catch { Alert.alert('Saída pendente', 'Não foi possível concluir a saída. Verifique a conexão e tente novamente.'); }
+    finally { setLoading(false); }
   };
 
-  const handleRefresh = () => {
-    setUser(null);
-    setError(null);
+  const handleRefresh = async () => {
+    setLoading(true);
+    try { await refresh(); }
+    finally { setLoading(false); }
   };
 
   return (
@@ -68,7 +49,7 @@ export default function Perfil() {
       <View style={styles.controls}>
         <Button titulo="Atualizar" onPress={handleRefresh} corFundo="#9DD7E2" icon="refresh-cw" disabled={loading} />
         <View style={{ height: 12 }} />
-        <Button titulo="Sair" onPress={handleLogout} corFundo="#e74c3c" icon="log-out" />
+        <Button titulo="Sair" onPress={handleLogout} corFundo="#e74c3c" icon="log-out" disabled={loading} />
       </View>
     </ScrollView>
   );

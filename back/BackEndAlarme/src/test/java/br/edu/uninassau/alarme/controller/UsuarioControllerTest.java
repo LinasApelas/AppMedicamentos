@@ -13,6 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.mock.web.MockHttpSession;
+import br.edu.uninassau.alarme.security.SessaoUsuario;
 
 import java.util.List;
 import java.util.Optional;
@@ -107,10 +109,12 @@ class UsuarioControllerTest {
     }
 
     @Test
-    void listagemRetornaUsuariosSemSenha() throws Exception {
-        when(repository.findAll()).thenReturn(List.of(usuario()));
+    void listagemRetornaSomenteUsuarioDaSessaoSemSenha() throws Exception {
+        when(repository.findById(1L)).thenReturn(Optional.of(usuario()));
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(SessaoUsuario.USUARIO_ID, 1L);
 
-        mvc.perform(get("/usuarios"))
+        mvc.perform(get("/usuarios").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()").value(1))
@@ -118,7 +122,7 @@ class UsuarioControllerTest {
                 .andExpect(jsonPath("$[0].nome").value("Ana"))
                 .andExpect(jsonPath("$..senha").doesNotExist());
 
-        verify(repository).findAll();
+        verify(repository).findById(1L);
     }
 
     private Usuario usuario() {

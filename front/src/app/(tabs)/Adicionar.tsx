@@ -8,10 +8,12 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { dataLocal, lerData, type Remedio } from '../../services/agenda';
 import { enviarLembrete } from '../../services/lembretes';
 import { atualizarAlarmes } from '../../services/alarmes';
+import { capturarSessaoLocal, sessaoLocalAtual, validarSessaoLocal } from '../../services/sessaoLocal';
 
 export default function Adicionar() {
     const router = useRouter();
     const db = useSQLiteContext();
+    const [sessao] = useState(capturarSessaoLocal);
     const { id } = useLocalSearchParams<{ id?: string }>();
     const [original, setOriginal] = useState<Remedio | null>(null);
     const [ParaOutraPessoa, setParaOutraPessoa] = useState(false);
@@ -26,26 +28,27 @@ export default function Adicionar() {
 
     useFocusEffect(useCallback(() => {
         let active = true;
+        if (!sessaoLocalAtual(sessao)) return;
         setOriginal(null);
         setMedicacao(''); setNomePessoa(''); setParaOutraPessoa(false);
         setProximaDose(''); setIntervalo(''); setFrequencia(''); setInicio(dataLocal());
         if (id) {
             setCarregando(true);
             db.getFirstAsync<Remedio>('SELECT * FROM lembretes WHERE id = ?', [id]).then(item => {
-                if (!active) return;
+                if (!active || !sessaoLocalAtual(sessao)) return;
                 if (!item) throw new Error('Medicamento não encontrado');
                 setOriginal(item); setMedicacao(item.nome); setNomePessoa(item.username || '');
                 setParaOutraPessoa(!!item.username); setProximaDose(/^\d{2}:\d{2}$/.test(item.dose || '') ? item.dose! : '');
                 setIntervalo(item.intervalo?.toString() || ''); setFrequencia(item.frequencia?.toString() || '');
                 setInicio(item.inicio || dataLocal());
-            }).catch(() => { if (active) { Alert.alert('Erro', 'Não foi possível carregar o medicamento.'); router.replace('/Lembretes'); } })
-              .finally(() => { if (active) setCarregando(false); });
+            }).catch(() => { if (active && sessaoLocalAtual(sessao)) { Alert.alert('Erro', 'Não foi possível carregar o medicamento.'); router.replace('/Lembretes'); } })
+              .finally(() => { if (active && sessaoLocalAtual(sessao)) setCarregando(false); });
         } else setCarregando(false);
         return () => { active = false; };
-    }, [db, id, router]));
+    }, [db, id, router, sessao]));
 
     const handleSalvar = async () => {
-        if (loading || carregando || (id && !original)) return;
+        if (!sessaoLocalAtual(sessao) || loading || carregando || (id && !original)) return;
         if (!nomeMedicacao.trim() || (ParaOutraPessoa && !nomePessoa.trim())) {
             Alert.alert('Atenção', 'Preencha o nome do medicamento e da pessoa.'); return;
         }
@@ -65,14 +68,17 @@ export default function Adicionar() {
                 nome=excluded.nome, intervalo=excluded.intervalo, frequencia=excluded.frequencia, dose=excluded.dose,
                 inicio=excluded.inicio, pendente=1`,
                 [item.id, item.username, item.nome, item.intervalo, item.frequencia, item.dose, item.inicio, item.serverId]);
-            try { await enviarLembrete(db, item); }
-            catch { Alert.alert('Salvo no aparelho', 'A sincronização será tentada novamente ao abrir os lembretes.'); }
-            try { await atualizarAlarmes(await db.getAllAsync<Remedio>('SELECT * FROM lembretes'), true); }
-            catch { Alert.alert('Aviso', 'Medicamento salvo, mas não foi possível atualizar os alarmes. Confira a permissão de notificações.'); }
+            validarSessaoLocal(sessao);
+            try { await enviarLembrete(db, item, sessao); }
+            catch { if (sessaoLocalAtual(sessao)) Alert.alert('Salvo no aparelho', 'A sincronização será tentada novamente ao abrir os lembretes.'); }
+            validarSessaoLocal(sessao);
+            try { await atualizarAlarmes(await db.getAllAsync<Remedio>('SELECT * FROM lembretes'), true, sessao); }
+            catch { if (sessaoLocalAtual(sessao)) Alert.alert('Aviso', 'Medicamento salvo, mas não foi possível atualizar os alarmes. Confira a permissão de notificações.'); }
+            validarSessaoLocal(sessao);
             router.setParams({ id: undefined });
             router.replace('/Lembretes');
-        } catch { Alert.alert('Erro', 'Não foi possível salvar o medicamento.'); }
-        finally { setLoading(false); }
+        } catch { if (sessaoLocalAtual(sessao)) Alert.alert('Erro', 'Não foi possível salvar o medicamento.'); }
+        finally { if (sessaoLocalAtual(sessao)) setLoading(false); }
     };
         return(
 

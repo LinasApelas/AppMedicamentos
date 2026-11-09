@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { ApiError, apiService } from './api';
 import { dataLocal, type Remedio } from './agenda';
+import { capturarSessaoLocal, validarSessaoLocal, type SessaoLocal } from './sessaoLocal';
 
 export async function inicializarBanco(db: SQLiteDatabase) {
   await db.execAsync(`PRAGMA journal_mode = WAL;
@@ -17,7 +18,8 @@ export async function inicializarBanco(db: SQLiteDatabase) {
   }
 }
 
-export async function enviarLembrete(db: SQLiteDatabase, item: Remedio) {
+export async function enviarLembrete(db: SQLiteDatabase, item: Remedio, sessao: SessaoLocal = capturarSessaoLocal()) {
+  validarSessaoLocal(sessao);
   const payload = { nome: item.nome, unidadeMedida: 'porção', descricao: `Intervalo: ${item.intervalo}h, Frequência: ${item.frequencia} dias` };
   let serverId = item.serverId;
   if (serverId) {
@@ -25,18 +27,25 @@ export async function enviarLembrete(db: SQLiteDatabase, item: Remedio) {
     catch (error) {
       if (!(error instanceof ApiError) || error.status !== 404) throw error;
       // O cadastro local foi editado, mas seu antigo ID não existe mais.
+      validarSessaoLocal(sessao);
       serverId = (await apiService.criarMedicamento(payload)).id;
     }
   } else serverId = (await apiService.criarMedicamento(payload)).id;
+  validarSessaoLocal(sessao);
   await db.runAsync('UPDATE lembretes SET serverId = ?, pendente = 0 WHERE id = ?', [serverId!, item.id]);
 }
 
-export async function sincronizarLembretes(db: SQLiteDatabase) {
+export async function sincronizarLembretes(db: SQLiteDatabase, sessao: SessaoLocal = capturarSessaoLocal()) {
+  validarSessaoLocal(sessao);
   const pending = await db.getAllAsync<Remedio>('SELECT * FROM lembretes WHERE pendente = 1');
-  for (const item of pending) await enviarLembrete(db, item);
+  validarSessaoLocal(sessao);
+  for (const item of pending) await enviarLembrete(db, item, sessao);
+  validarSessaoLocal(sessao);
   const server = await apiService.listarMedicamentos();
   for (const item of server) {
+    validarSessaoLocal(sessao);
     const existing = await db.getFirstAsync<Remedio>('SELECT * FROM lembretes WHERE serverId = ?', [item.id]);
+    validarSessaoLocal(sessao);
     if (existing) continue; // Não substituir horários locais por descrições do catálogo.
     await db.runAsync('INSERT OR IGNORE INTO lembretes (id, nome, username, serverId) VALUES (?, ?, ?, ?)', [`server-${item.id}`, item.nome, '', item.id]);
   }

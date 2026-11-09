@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { apiService } from '../services/api';
+export { useAuth } from '../contexts/AuthContext';
 
 //hook para carregar dados assincronamente
 export function useApiData<T>(
@@ -57,27 +57,3 @@ export function useApiMutation<TInput, TOutput>(
   return { execute, loading, error };
 }
 
-// hook para gerenciar a sincronização do usuario
-export function useAuth() {
-  const [user, setUser] = useState<any | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const login = useCallback(async (email: string, senha: string) => {
-    try {
-      const usuarioLogado = await apiService.fazerLogin({ email, senha });
-      setUser(usuarioLogado);
-      setIsLoggedIn(true);
-      return usuarioLogado;
-    } catch (error) {
-      setIsLoggedIn(false);
-      throw error;
-    }
-  }, []);
-
-  const logout = useCallback(() => {
-    setUser(null);
-    setIsLoggedIn(false);
-  }, []);
-
-  return { user, isLoggedIn, login, logout };
-}

@@ -46,6 +46,11 @@ public class UsuarioService {
                 .map(UsuarioService::response);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<UsuarioResposta> buscarPorId(Long id) {
+        return repository.findById(id).map(UsuarioService::response);
+    }
+
     public Optional<UsuarioResposta> atualizar(Long id, Usuario entrada) {
         if (entrada == null) {
             throw invalidInput();

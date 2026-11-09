@@ -1,6 +1,7 @@
 package br.edu.uninassau.alarme.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,6 +23,7 @@ public class Historico {
 
     @ManyToOne
     @JoinColumn(name = "tratamento_id", nullable = false)
+    @JsonIgnoreProperties("historicos")
     private Tratamento tratamento;
 
     public Historico() {}

@@ -1,22 +1,31 @@
-import { SQLiteProvider } from 'expo-sqlite';
 import { Stack } from 'expo-router';
 import * as Notifications from 'expo-notifications';
-
-import { inicializarBanco } from '../services/lembretes';
+import { ActivityIndicator, View } from 'react-native';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
 });
 
 export default function Layout() {
-  return (
+  return <AuthProvider><SessionRoutes /></AuthProvider>;
+}
 
-    // Envolve toda a aplicação com o provedor do banco de dados
-    <SQLiteProvider databaseName="medicamentos_v2.db" onInit={inicializarBanco}>
-      <Stack
-        screenOptions={{ headerShown: false }}
-      >
-      </Stack>
-    </SQLiteProvider>
-  );
+function SessionRoutes() {
+  const { user, restoring } = useAuth();
+  if (restoring) return <View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator size="large" /></View>;
+  return <Stack screenOptions={{ headerShown: false }}>
+    <Stack.Protected guard={!!user}>
+      <Stack.Screen name="(tabs)" />
+    </Stack.Protected>
+    <Stack.Protected guard={!user}>
+      <Stack.Screen name="login" />
+      <Stack.Screen name="CriarConta" />
+      <Stack.Screen name="RecuperarSenha" />
+      <Stack.Screen name="RecuperarSenhaCodigo" />
+      <Stack.Screen name="RecuperarSenhaEmail" />
+    </Stack.Protected>
+    <Stack.Screen name="index" />
+    <Stack.Screen name="termos" />
+  </Stack>;
 }

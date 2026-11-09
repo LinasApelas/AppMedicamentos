@@ -1,12 +1,16 @@
 import Motion from '../components/Motion';
 import { ScrollView, SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
-import { useRouter, Stack } from 'expo-router';
+import { Redirect, useRouter, Stack, useLocalSearchParams } from 'expo-router';
+import { useAuth } from '../contexts/AuthContext';
 
 import { MaterialIcons } from '@expo/vector-icons';
 import Button from '../components/Button';
 
 export default function App() {
   const router = useRouter();
+  const { user } = useAuth();
+  const { boasVindas } = useLocalSearchParams<{ boasVindas?: string }>();
+  if (boasVindas !== '1') return <Redirect href={user ? '/(tabs)/Perfil' : '/login'} />;
 
   return (
     <SafeAreaView style={styles.container}>

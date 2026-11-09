@@ -2,13 +2,11 @@ import Motion from '../components/Motion';
 import { ScrollView, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View, Alert, Image } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 // --- IMPORTAÇÃO DA IMAGE ADICIONADA AQUI ---
 
 import Button from '../components/Button';
 import Input from '../components/Input';
-import { apiService } from '../services/api';
-import { sincronizarLembretes } from '../services/lembretes';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,7 +14,7 @@ export default function Login() {
 
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const db = useSQLiteContext();
+  const { login, error: sessionError, refresh } = useAuth();
 
   const handleLogin = async () => {
     if (loading) return;
@@ -27,14 +25,9 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const usuarioLogado = await apiService.fazerLogin({
-        email: email,
-        senha: senha,
-      });
-
-      await sincronizarLembretes(db).catch(error => console.warn('Sincronização pendente:', error));
+      const usuarioLogado = await login(email, senha);
       Alert.alert('Sucesso', `Bem-vindo, ${usuarioLogado.nome}!`);
-      router.replace('../(tabs)/Perfil');
+      router.replace('/(tabs)/Perfil');
     } catch (error: any) {
       const errorMessage = error?.message || 'Ocorreu um erro ao fazer login.';
       if (errorMessage.includes('401')) {
@@ -67,6 +60,7 @@ export default function Login() {
 
           <Motion style={styles.formContainer}>
             <Text style={styles.TextoBoasVindas}>Login</Text>
+            {sessionError ? <TouchableOpacity onPress={() => void refresh()}><Text accessibilityRole="alert">{sessionError} Toque para tentar novamente.</Text></TouchableOpacity> : null}
 
             <Input
               iconName="mail"

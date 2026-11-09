@@ -13,6 +13,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.mock.web.MockHttpSession;
+import br.edu.uninassau.alarme.security.SessaoUsuario;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -137,7 +139,10 @@ class UsuarioAtualizacaoContractTest {
     private MvcResult update(long id, String password) throws Exception {
         // All inputs are fixed test fixtures; no user-supplied JSON fragments.
         String passwordField = password == null ? "" : ",\"senha\":\"" + password + "\"";
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(SessaoUsuario.USUARIO_ID, id);
         MvcResult result = mvc.perform(put("/usuarios/{id}", id)
+                .session(session)
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .content("{\"nome\":\"Ana atualizada\",\"email\":\"ana@example.com\","
