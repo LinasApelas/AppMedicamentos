@@ -1,0 +1,6 @@
+br\edu\uninassau\alarme\service\UsuarioServiceTest.class
+br\edu\uninassau\alarme\security\PasswordStorageDiagnosticTest.class
+br\edu\uninassau\alarme\config\PasswordConfigTest.class
+br\edu\uninassau\alarme\controller\UsuarioControllerTest.class
+br\edu\uninassau\alarme\controller\UsuarioAtualizacaoContractTest.class
+br\edu\uninassau\alarme\repository\UsuarioRepositoryTest.class
