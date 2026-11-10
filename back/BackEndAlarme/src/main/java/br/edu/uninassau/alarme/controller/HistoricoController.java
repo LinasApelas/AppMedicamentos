@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -23,7 +25,7 @@ public class HistoricoController {
     }
 
     @PostMapping
-    public ResponseEntity<String> criarHistorico(@RequestBody Historico entrada, HttpServletRequest request) {
+    public ResponseEntity<String> criarHistorico(@RequestBody HistoricoEntrada entrada, HttpServletRequest request) {
         Historico historico = new Historico();
         preencher(historico, entrada, SessaoUsuario.exigirId(request));
         repository.save(historico);
@@ -37,7 +39,7 @@ public class HistoricoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> atualizarHistorico(@PathVariable Long id, @RequestBody Historico entrada,
+    public ResponseEntity<String> atualizarHistorico(@PathVariable Long id, @RequestBody HistoricoEntrada entrada,
                                                      HttpServletRequest request) {
         Long usuarioId = SessaoUsuario.exigirId(request);
         Historico historico = acesso.historico(id, usuarioId);
@@ -52,11 +54,19 @@ public class HistoricoController {
         return ResponseEntity.ok("Historico deletado com Sucesso!!");
     }
 
-    private void preencher(Historico historico, Historico entrada, Long usuarioId) {
-        var tratamento = acesso.tratamento(entrada.getTratamento() == null ? null : entrada.getTratamento().getId(), usuarioId);
-        historico.setDataHoraPrevista(entrada.getDataHoraPrevista());
-        historico.setDataHoraRealizada(entrada.getDataHoraRealizada());
-        historico.setStatus(entrada.getStatus());
+    private void preencher(Historico historico, HistoricoEntrada entrada, Long usuarioId) {
+        var tratamento = acesso.tratamento(entrada.tratamento() == null ? null : entrada.tratamento().id(), usuarioId);
+        historico.setDataHoraPrevista(entrada.dataHoraPrevista());
+        historico.setDataHoraRealizada(entrada.dataHoraRealizada());
+        historico.setStatus(entrada.status());
         historico.setTratamento(tratamento);
     }
+
+    // Receive a relationship ID, never deserialize or trust a client-supplied entity graph.
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record HistoricoEntrada(LocalDateTime dataHoraPrevista, LocalDateTime dataHoraRealizada,
+                                   String status, ReferenciaTratamento tratamento) { }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ReferenciaTratamento(Long id) { }
 }
