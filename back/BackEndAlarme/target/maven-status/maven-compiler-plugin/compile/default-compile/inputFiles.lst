@@ -1,5 +1,6 @@
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\BackEnd3NaApplication.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\config\PasswordConfig.java
+D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\config\SessaoConfig.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\controller\HistoricoController.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\controller\MedicamentoController.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\controller\PerfilController.java
@@ -15,5 +16,7 @@ D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\j
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\repository\PerfilRepository.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\repository\TratamentoRepository.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\repository\UsuarioRepository.java
+D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\security\AcessoConta.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\security\PasswordStorageDiagnostic.java
+D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\security\SessaoUsuario.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\main\java\br\edu\uninassau\alarme\service\UsuarioService.java

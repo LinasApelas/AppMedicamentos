@@ -1,0 +1,122 @@
+import { useCallback, useRef, useState } from 'react';
+import { Alert, FlatList, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Stack, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Button from '../components/Button';
+import MapaFarmacias from '../components/farmacias/MapaFarmacias';
+import ItemFarmacia from '../components/farmacias/ItemFarmacia';
+import { criarBuscaFarmacias, type Coordenada, type Farmacia, type RaioFarmacias } from '../services/farmacias';
+import { ErroLocalizacao, obterLocalizacao } from '../services/localizacao';
+import { abrirRota } from '../services/rotasFarmacias';
+
+export default function Farmacias() {
+  const insets = useSafeAreaInsets();
+  const lista = useRef<FlatList<Farmacia>>(null);
+  const [origem, setOrigem] = useState<Coordenada | null>(null);
+  const [items, setItems] = useState<Farmacia[]>([]);
+  const [raio, setRaio] = useState<RaioFarmacias>(5);
+  const [selecionada, setSelecionada] = useState<string | null>(null);
+  const [carregando, setCarregando] = useState(false);
+  const [consultado, setConsultado] = useState(false);
+  const [erro, setErro] = useState('');
+  const [configuracoes, setConfiguracoes] = useState(false);
+  const consulta = useRef(criarBuscaFarmacias());
+  const ativa = useRef<AbortController | null>(null);
+  useFocusEffect(useCallback(() => () => {
+    ativa.current?.abort();
+    ativa.current = null;
+    consulta.current = criarBuscaFarmacias();
+    setOrigem(null); setItems([]); setConsultado(false); setCarregando(false);
+  }, []));
+
+  async function buscar(novoRaio = raio, atualizarPosicao = false) {
+    if (ativa.current) return;
+    const controller = new AbortController();
+    ativa.current = controller;
+    setCarregando(true); setErro(''); setConfiguracoes(false); setConsultado(false);
+    setItems([]); setSelecionada(null); setRaio(novoRaio);
+    if (atualizarPosicao) setOrigem(null);
+    try {
+      const posicao = !origem || atualizarPosicao ? await obterLocalizacao() : origem;
+      if (controller.signal.aborted) return;
+      setOrigem(posicao);
+      const farmacias = await consulta.current(posicao, novoRaio, controller.signal);
+      if (controller.signal.aborted) return;
+      setItems(farmacias); setConsultado(true);
+    } catch (e) {
+      if (!controller.signal.aborted) {
+        setErro(e instanceof Error ? e.message : 'Não foi possível buscar farmácias. Tente novamente.');
+        setConfiguracoes(e instanceof ErroLocalizacao && e.abrirConfiguracoes);
+      }
+    } finally {
+      if (ativa.current === controller) { ativa.current = null; setCarregando(false); }
+    }
+  }
+
+  async function configuracao() {
+    try { await Linking.openSettings(); }
+    catch { Alert.alert('Configurações', 'Abra as configurações do aparelho e habilite a localização para o aplicativo.'); }
+  }
+  async function rota(item: Farmacia) {
+    try { await abrirRota(item); }
+    catch (e) { Alert.alert('Como chegar', e instanceof Error ? e.message : 'Não foi possível abrir o mapa.'); }
+  }
+
+  return <View style={styles.page}>
+    <Stack.Screen options={{ headerShown: true, title: 'Farmácias Próximas',
+      headerTintColor: '#12323A', headerShadowVisible: false, headerStyle: { backgroundColor: '#ffffff' } }} />
+    <FlatList ref={lista} data={items} keyExtractor={item => item.id} extraData={selecionada}
+      contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 24) }]}
+      ListHeaderComponent={<View style={styles.header}>
+        <Text style={styles.title}>Encontre uma farmácia</Text>
+        <Text style={styles.text}>Ao buscar, usamos sua localização uma vez e enviamos a posição ao OpenStreetMap/Overpass para encontrar farmácias próximas. O mapa usa o provedor do aparelho. Não salvamos sua posição nem acompanhamos seus deslocamentos.</Text>
+        <Button titulo={carregando ? 'Buscando farmácias…' : origem ? 'Atualizar busca e localização' : 'Usar minha localização'}
+          icon="map-pin" loading={carregando} onPress={() => void buscar(raio, true)} />
+        <Text style={styles.label}>Raio de busca</Text>
+        <View style={styles.filters}>{([2, 5, 10] as const).map(valor =>
+          <Pressable key={valor} accessibilityRole="button" accessibilityLabel={`Buscar em ${valor} quilômetros`}
+            accessibilityState={{ selected: raio === valor, disabled: carregando }} disabled={carregando}
+            onPress={() => { if (origem) void buscar(valor); else setRaio(valor); }}
+            style={[styles.filter, raio === valor && styles.active]}>
+            <Text style={styles.label}>{valor} km</Text>
+          </Pressable>)}</View>
+        {!!erro && <View style={styles.feedback}>
+          <Text accessibilityLiveRegion="polite" style={styles.error}>{erro}</Text>
+          <Button titulo="Tentar novamente" icon="refresh-cw" disabled={carregando} onPress={() => void buscar()} />
+          {configuracoes && Platform.OS !== 'web' && <Button titulo="Abrir configurações" icon="settings" onPress={() => void configuracao()} />}
+          {configuracoes && Platform.OS === 'web' && <Text style={styles.text}>Habilite a localização nas permissões deste site no navegador.</Text>}
+        </View>}
+        {origem && <View style={styles.map}>
+          <MapaFarmacias origem={origem} farmacias={items} raio={raio} selecionada={selecionada} onSelecionar={setSelecionada} />
+        </View>}
+        <Pressable accessibilityRole="link" onPress={() => void Linking.openURL('https://www.openstreetmap.org/copyright')
+          .catch(() => Alert.alert('OpenStreetMap', 'Consulte https://www.openstreetmap.org/copyright'))} style={styles.credit}>
+          <Text style={styles.link}>Dados © colaboradores do OpenStreetMap · ODbL</Text>
+        </Pressable>
+        <Text style={styles.text}>Distâncias aproximadas em linha reta, não por trajeto. Os cadastros podem estar incompletos ou desatualizados. Resultados ficam em memória por até 5 minutos; aguarde 15 segundos entre novas consultas.</Text>
+        {consultado && <Text accessibilityLiveRegion="polite" style={styles.label}>{items.length} farmácia(s) em até {raio} km</Text>}
+        {!!selecionada && <Text style={styles.label}>Selecionada: {items.find(item => item.id === selecionada)?.nome}</Text>}
+      </View>}
+      ListEmptyComponent={consultado && !carregando && !erro ? <Text style={styles.text}>Nenhuma farmácia mapeada neste raio. Tente ampliar a busca.</Text> : undefined}
+      renderItem={({ item }) => <ItemFarmacia item={item} selecionada={selecionada === item.id}
+        onSelecionar={() => { setSelecionada(item.id); lista.current?.scrollToOffset({ offset: 0, animated: true }); }}
+        onRota={() => void rota(item)} />} />
+  </View>;
+}
+
+const styles = StyleSheet.create({
+  page: { flex: 1, backgroundColor: '#ffffff' },
+  content: { padding: 24, width: '100%', maxWidth: 760, alignSelf: 'center' },
+  header: { gap: 16, marginBottom: 16 },
+  title: { fontSize: 28, fontWeight: '700', color: '#12323A' },
+  text: { fontSize: 15, lineHeight: 22, color: '#38535A' },
+  label: { fontSize: 16, color: '#12323A', fontWeight: '700' },
+  filters: { flexDirection: 'row', gap: 12 },
+  filter: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: '#E2F1F8', borderWidth: 2, borderColor: 'transparent' },
+  active: { borderColor: '#12323A', backgroundColor: '#9DD7E2' },
+  map: { borderRadius: 24, overflow: 'hidden' },
+  feedback: { gap: 12 },
+  error: { color: '#A62228', fontSize: 16, lineHeight: 24 },
+  credit: { minHeight: 44, justifyContent: 'center' },
+  link: { color: '#175B8E', textDecorationLine: 'underline', fontSize: 14 },
+});

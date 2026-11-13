@@ -1,4 +1,6 @@
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\test\java\br\edu\uninassau\alarme\config\PasswordConfigTest.java
+D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\test\java\br\edu\uninassau\alarme\controller\SessionCookieHttpIntegrationTest.java
+D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\test\java\br\edu\uninassau\alarme\controller\SessionIsolationIntegrationTest.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\test\java\br\edu\uninassau\alarme\controller\UsuarioAtualizacaoContractTest.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\test\java\br\edu\uninassau\alarme\controller\UsuarioControllerTest.java
 D:\PROJETOS\ALARME DE MEDICAMENTOS\AppMedicamentos\back\BackEndAlarme\src\test\java\br\edu\uninassau\alarme\repository\UsuarioRepositoryTest.java
