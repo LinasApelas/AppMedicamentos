@@ -5,6 +5,8 @@ import br.edu.uninassau.alarme.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -69,6 +71,14 @@ public class UsuarioService {
             usuario.setSenha(hash);
             return response(repository.save(usuario));
         });
+    }
+
+    @Transactional(readOnly = true)
+    public void verificarExclusao(Long id) {
+        if (repository.possuiVinculos(id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Remova os perfis e medicamentos vinculados antes de excluir a conta.");
+        }
     }
 
     private boolean matches(String senha, String stored) {

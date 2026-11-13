@@ -58,6 +58,40 @@ class SessionIsolationIntegrationTest {
     }
 
     @Test
+    void exclusaoDeContaSemVinculosInvalidaSessao() throws Exception {
+        Usuario usuario = cadastrar("Conta", "excluir@example.com");
+        MockHttpSession session = login(usuario.getEmail());
+        mvc.perform(mutation(delete("/usuarios/{id}", usuario.getId()), session, null))
+                .andExpect(status().isOk());
+        usuarios.flush();
+        assertFalse(usuarios.existsById(usuario.getId()));
+        assertTrue(session.isInvalid());
+    }
+
+    @Test
+    void exclusaoDeContaComVinculosRetornaConflitoEPreservaDados() throws Exception {
+        Usuario usuario = cadastrar("Conta", "vinculos@example.com");
+        MockHttpSession session = login(usuario.getEmail());
+        Perfil perfil = perfis.saveAndFlush(new Perfil(null, "Perfil", "azul", usuario));
+        mvc.perform(mutation(delete("/usuarios/{id}", usuario.getId()), session, null))
+                .andExpect(status().isConflict());
+        assertTrue(usuarios.existsById(usuario.getId()));
+        assertTrue(perfis.existsById(perfil.getId()));
+        assertFalse(session.isInvalid());
+
+        perfis.delete(perfil);
+        perfis.flush();
+        Medicamento medicamento = new Medicamento(null, "Teste", "unidade", "Teste");
+        medicamento.setUsuario(usuario);
+        medicamentos.saveAndFlush(medicamento);
+        mvc.perform(mutation(delete("/usuarios/{id}", usuario.getId()), session, null))
+                .andExpect(status().isConflict());
+        assertTrue(usuarios.existsById(usuario.getId()));
+        assertTrue(medicamentos.existsById(medicamento.getId()));
+        assertFalse(session.isInvalid());
+    }
+
+    @Test
     void cadastroELoginRestauramSomenteContaAutenticadaMantendoBCrypt() throws Exception {
         cadastrar("usuario teste bcrypt", "teste.bcrypt@example.com");
         Usuario a = cadastrar("Conta A", "conta.a@example.com");

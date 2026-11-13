@@ -10,7 +10,7 @@ export default function App() {
   const router = useRouter();
   const { user } = useAuth();
   const { boasVindas } = useLocalSearchParams<{ boasVindas?: string }>();
-  if (boasVindas !== '1') return <Redirect href={user ? '/(tabs)/Perfil' : '/login'} />;
+  if (boasVindas !== '1') return <Redirect href={user ? '/(tabs)/Lembretes' : '/login'} />;
 
   return (
     <SafeAreaView style={styles.container}>

@@ -3,6 +3,7 @@ import { SQLiteProvider, type SQLiteDatabase } from 'expo-sqlite';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import TabBar from '../../components/TabBar';
+import MenuConta from '../../components/MenuConta';
 import { useAuth } from '../../contexts/AuthContext';
 import { inicializarBanco } from '../../services/lembretes';
 import { atualizarAlarmes } from '../../services/alarmes';
@@ -30,13 +31,14 @@ export default function Layout() {
     <Stack.Screen options={{ headerShown: false }} />
     <Tabs tabBar={props => <TabBar {...props} />} screenOptions={{
       headerShown: true,
+      headerRight: () => <MenuConta />,
       headerShadowVisible: false,
       headerStyle: { backgroundColor: '#ffffff' },
       headerTitleStyle: { fontSize: 18, fontWeight: '700', color: '#12323A' },
     }}>
       <Tabs.Screen name="Lembretes" options={{ title: 'Lembretes' }} />
       <Tabs.Screen name="Adicionar" options={{ title: 'Adicionar' }} />
-      <Tabs.Screen name="Perfil" options={{ title: 'Perfil' }} />
+      <Tabs.Screen name="Farmacias" options={{ title: 'Farmácias próximas' }} />
     </Tabs>
   </SQLiteProvider>;
 }

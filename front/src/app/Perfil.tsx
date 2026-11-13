@@ -1,10 +1,11 @@
-import Motion from '../../components/Motion';
+import Motion from '../components/Motion';
 import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 
-import Button from '../../components/Button';
-import { useAuth } from '../../contexts/AuthContext';
+
+import Button from '../components/Button';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Perfil() {
   const { user, error, logout, refresh } = useAuth();

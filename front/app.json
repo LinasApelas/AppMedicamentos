@@ -37,7 +37,13 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      ["expo-location", {
+        "locationWhenInUsePermission": "O SyncMed usa sua localização para encontrar farmácias próximas quando você solicita uma busca.",
+        "isIosBackgroundLocationEnabled": false,
+        "isAndroidBackgroundLocationEnabled": false,
+        "isAndroidForegroundServiceEnabled": false
+      }]
     ],
     "experiments": {
       "typedRoutes": true,

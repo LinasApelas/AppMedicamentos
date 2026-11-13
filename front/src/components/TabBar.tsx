@@ -9,7 +9,7 @@ import { useReducedMotion } from './Motion';
 const items: Record<string, { label: string; icon: keyof typeof MaterialIcons.glyphMap; activeIcon: keyof typeof MaterialIcons.glyphMap }> = {
   Lembretes: { label: 'Lembretes', icon: 'notifications-none', activeIcon: 'notifications' },
   Adicionar: { label: 'Adicionar', icon: 'add', activeIcon: 'add' },
-  Perfil: { label: 'Perfil', icon: 'person-outline', activeIcon: 'person' },
+  Farmacias: { label: 'Farmácias', icon: 'location-on', activeIcon: 'local-pharmacy' },
 };
 
 interface ItemProps {
@@ -55,7 +55,7 @@ function TabItem({ name, focused, reduced, fontsReady, onPress, onLongPress, acc
           }]} />
           {fontsReady ? <MaterialIcons style={styles.glyph} name={focused ? item.activeIcon : item.icon} size={28}
             color={focused ? '#12323A' : '#808080'} /> :
-            <Text style={styles.fallback}>{name === 'Adicionar' ? '+' : name === 'Perfil' ? 'P' : 'L'}</Text>}
+            <Text style={styles.fallback}>{name === 'Adicionar' ? '+' : name === 'Farmacias' ? 'F' : 'L'}</Text>}
         </Animated.View>
         <Animated.Text style={[styles.label, focused && styles.labelSelected,
           { transform: [{ translateY: selection.interpolate({ inputRange: [0, 1], outputRange: [0, -8] }) }] }]}>{item.label}</Animated.Text>

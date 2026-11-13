@@ -27,7 +27,7 @@ export default function Login() {
     try {
       const usuarioLogado = await login(email, senha);
       Alert.alert('Sucesso', `Bem-vindo, ${usuarioLogado.nome}!`);
-      router.replace('/(tabs)/Perfil');
+      router.replace('/(tabs)/Lembretes');
     } catch (error: any) {
       const errorMessage = error?.message || 'Ocorreu um erro ao fazer login.';
       if (errorMessage.includes('401')) {

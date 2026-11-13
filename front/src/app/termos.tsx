@@ -1,9 +1,10 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, View, Image, Text, ScrollView } from 'react-native';
 import Button from '../components/Button';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 export default function Termos() {
+  const { consulta } = useLocalSearchParams<{ consulta?: string }>();
   return (
     <SafeAreaView style={styles.container}>
 
@@ -36,8 +37,8 @@ export default function Termos() {
         {/* Botao para aceitar os termos */}
         <View style={styles.Botao}>
           <Button
-            titulo="Aceitar e Continuar"
-            onPress={() => router.push('../Lembretes')}
+            titulo={consulta === '1' ? 'Voltar' : 'Aceitar e Continuar'}
+            onPress={() => consulta === '1' && router.canGoBack() ? router.back() : router.replace('/Lembretes')}
           />
         </View>
 

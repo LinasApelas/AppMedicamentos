@@ -17,6 +17,7 @@ function SessionRoutes() {
   return <Stack screenOptions={{ headerShown: false }}>
     <Stack.Protected guard={!!user}>
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="Perfil" options={{ headerShown: true, title: 'Meu perfil', headerTintColor: '#12323A', headerShadowVisible: false, headerStyle: { backgroundColor: '#ffffff' } }} />
     </Stack.Protected>
     <Stack.Protected guard={!user}>
       <Stack.Screen name="login" />
