@@ -1,5 +1,5 @@
 import Storage from 'expo-sqlite/kv-store';
-import API_CONFIG from './config';
+import { API_CONFIG } from './config';
 
 // Somente a intenção de sair é persistida aqui; nunca senha, cookie ou usuário.
 // Se a rede cair no logout, o próximo início não pode restaurar essa sessão.

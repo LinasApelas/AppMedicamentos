@@ -7,6 +7,7 @@ import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import br.edu.uninassau.alarme.security.SessaoUsuario;
+import br.edu.uninassau.alarme.security.AcessoConta;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +22,12 @@ public class UsuarioController {
 
     private final UsuarioRepository usuarioRepository;
     private final UsuarioService usuarioService;
+    private final AcessoConta acesso;
 
-    public UsuarioController(UsuarioRepository usuarioRepository, UsuarioService usuarioService) {
+    public UsuarioController(UsuarioRepository usuarioRepository, UsuarioService usuarioService, AcessoConta acesso) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioService = usuarioService;
+        this.acesso = acesso;
     }
 
     @PostMapping
@@ -92,7 +95,7 @@ public class UsuarioController {
                                                 HttpServletResponse response) {
         if (!id.equals(SessaoUsuario.exigirId(request))) return ResponseEntity.notFound().build();
         if (usuarioRepository.existsById(id)) {
-            usuarioService.verificarExclusao(id);
+            acesso.verificarExclusaoUsuario(id);
             usuarioRepository.deleteById(id);
             SessaoUsuario.encerrar(request, response);
             return ResponseEntity.ok("Usuario deletado com Sucesso!!");

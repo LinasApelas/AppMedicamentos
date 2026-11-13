@@ -3,7 +3,7 @@
  * Abstrai o fetch e fornece métodos reutilizáveis
  */
 
-import API_CONFIG from './config';
+import { API_CONFIG } from './config';
 import { sessionStorage } from './session-storage';
 
 export interface UsuarioAutenticado {
@@ -100,7 +100,10 @@ class ApiService {
 
       // Se a resposta não é ok mas não tem corpo, retornar null ou string
       if (!response.ok) {
-        if (response.status === 401 && !publicRequest) this.setUser(null, true);
+        if (response.status === 401 && !publicRequest) {
+          this.requests.delete(controller);
+          this.setUser(null, true);
+        }
         let errorMessage = `Erro ${response.status}`;
         const text = await response.text();
         try {

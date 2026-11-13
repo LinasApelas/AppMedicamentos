@@ -329,6 +329,13 @@ class SessionIsolationIntegrationTest {
 
         mvc.perform(mutation(delete("/medicamentos/{id}", graphA.medicamento().getId()), sessionA, null))
                 .andExpect(status().isConflict());
+        mvc.perform(mutation(delete("/usuarios/{id}", a.getId()), sessionA, null))
+                .andExpect(status().isConflict());
+        MockHttpSession sessionB = login(b.getEmail());
+        mvc.perform(mutation(delete("/perfis/{id}", perfilB.getId()), sessionB, null))
+                .andExpect(status().isConflict());
+        assertTrue(usuarios.existsById(a.getId()));
+        assertTrue(perfis.existsById(perfilB.getId()));
         assertTrue(medicamentos.existsById(graphA.medicamento().getId()));
         assertTrue(tratamentos.existsById(legacy.getId()));
         assertTrue(historicos.existsById(history.getId()));

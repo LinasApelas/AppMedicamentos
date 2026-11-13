@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.mock.web.MockHttpSession;
 import br.edu.uninassau.alarme.security.SessaoUsuario;
+import br.edu.uninassau.alarme.security.AcessoConta;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,9 @@ class UsuarioControllerTest {
     @Mock
     private UsuarioRepository repository;
 
+    @Mock
+    private AcessoConta acesso;
+
     private UsuarioController controller;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -43,7 +47,7 @@ class UsuarioControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new UsuarioController(repository, new UsuarioService(repository, encoder));
+        controller = new UsuarioController(repository, new UsuarioService(repository, encoder), acesso);
         mvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 

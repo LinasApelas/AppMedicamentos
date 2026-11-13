@@ -50,6 +50,13 @@ public class AcessoConta {
                 .orElseThrow(AcessoConta::naoEncontrado);
     }
 
+    public void verificarExclusaoUsuario(Long usuarioId) {
+        // Preserve ambiguous legacy relationships, including database-level cascades.
+        if (tratamentos.usuarioPossuiVinculoDeOutraConta(usuarioId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
+        }
+    }
+
     private static ResponseStatusException naoEncontrado() {
         return new ResponseStatusException(HttpStatus.NOT_FOUND);
     }

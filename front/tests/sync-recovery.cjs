@@ -14,7 +14,7 @@ function load(file, imports, globals = {}) {
   let status = 404;
   const config = { ENDPOINTS: { MEDICAMENTOS: 'http://test/medicamentos', LOGIN: 'http://test/login', SESSAO: 'http://test/me' } };
   const api = load('src/services/api.ts', {
-    './config': { __esModule: true, default: config },
+    './config': { API_CONFIG: config },
     './session-storage': { sessionStorage: { logoutPendente: async () => false } },
   }, {
     fetch: async url => url.includes('/medicamentos')

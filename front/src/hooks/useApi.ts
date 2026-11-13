@@ -56,4 +56,3 @@ export function useApiMutation<TInput, TOutput>(
 
   return { execute, loading, error };
 }
-

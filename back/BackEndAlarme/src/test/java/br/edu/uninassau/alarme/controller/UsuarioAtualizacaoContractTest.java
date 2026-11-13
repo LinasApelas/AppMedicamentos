@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.mock.web.MockHttpSession;
 import br.edu.uninassau.alarme.security.SessaoUsuario;
+import br.edu.uninassau.alarme.security.AcessoConta;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -34,6 +35,8 @@ class UsuarioAtualizacaoContractTest {
 
     @Mock
     private UsuarioRepository repository;
+    @Mock
+    private AcessoConta acesso;
     private UsuarioController controller;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -43,7 +46,7 @@ class UsuarioAtualizacaoContractTest {
 
     @BeforeEach
     void setUp() {
-        controller = new UsuarioController(repository, new UsuarioService(repository, encoder));
+        controller = new UsuarioController(repository, new UsuarioService(repository, encoder), acesso);
         lenient().when(repository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
         mvc = MockMvcBuilders.standaloneSetup(controller).build();
         originalHash = encoder.encode(OLD_PASSWORD);

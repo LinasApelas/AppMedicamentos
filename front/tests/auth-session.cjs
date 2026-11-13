@@ -29,7 +29,7 @@ function newClient() {
   const exports = {};
   vm.runInNewContext(source, {
     exports, setTimeout, clearTimeout, AbortController,
-    require: name => ({ './config': { __esModule: true, default: config }, './session-storage': { sessionStorage } })[name],
+    require: name => ({ './config': { API_CONFIG: config }, './session-storage': { sessionStorage } })[name],
     fetch: async (url, options) => {
       calls.push([url, options.method]);
       assert.equal(options.credentials, 'include');
@@ -46,6 +46,7 @@ function newClient() {
       if (url === '/usuarios/logout') { serverUser = null; return new Response(null, { status: 204 }); }
       if (!serverUser) return new Response(null, { status: 401 });
       if (url === '/usuarios/me') return Response.json(serverUser);
+      if (options.headers['X-SyncMed-User'] !== String(serverUser.id)) return new Response(null, { status: 401 });
       if (url === '/medicamentos' && delayedRequest) return delayedRequest;
       if (url === '/medicamentos') return Response.json([{ id: serverUser.id, nome: serverUser.nome }]);
       throw new Error('Requisição inesperada');
@@ -88,6 +89,11 @@ function newClient() {
   delayedRequest = undefined;
   assert.equal(client.currentUser.id, b.id);
   assert.equal((await client.listarMedicamentos())[0].id, b.id);
+
+  serverUser = a; // Outra aba mudou o cookie, mas esta ainda mantém a conta B na memória.
+  await assert.rejects(client.listarMedicamentos(), error => error.status === 401);
+  assert.equal(client.currentUser, null, 'Não usar o cookie de A para gravar no banco local de B');
+  await client.fazerLogin({ email: b.email, senha: 'fixture-apenas' });
 
   offline = true;
   await assert.rejects(client.logout());
