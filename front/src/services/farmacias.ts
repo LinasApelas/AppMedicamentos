@@ -72,18 +72,31 @@ export function criarBuscaFarmacias() {
     const timeout = setTimeout(cancelar, 25000);
     try {
       const query = `[out:json][timeout:20];(nwr["amenity"="pharmacy"](around:${raio * 1000},${origem.latitude},${origem.longitude});nwr["healthcare"="pharmacy"](around:${raio * 1000},${origem.latitude},${origem.longitude}););out center tags;`;
-      const resposta = await fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'SyncMed/1.0 (+https://github.com/LinasApelas/AppMedicamentos)' },
-        body: `data=${encodeURIComponent(query)}`, signal: controller.signal,
-        credentials: 'omit',
-      });
-      if (resposta.status === 429 || resposta.status === 406) {
-        indisponivelAte = Date.now() + 30000;
-        throw new Error('O serviço está ocupado. Aguarde 30 segundos e tente novamente.');
+      const servidores = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
+      let items: Farmacia[] | undefined;
+      for (let tentativa = 0; tentativa < servidores.length; tentativa++) {
+        if (controller.signal.aborted) throw new Error('Busca cancelada');
+        let resposta: Response;
+        try { resposta = await fetch(servidores[tentativa], {
+          method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'SyncMed/1.0 (+https://github.com/LinasApelas/AppMedicamentos)' },
+          body: `data=${encodeURIComponent(query)}`, signal: controller.signal,
+          credentials: 'omit',
+        });
+        } catch (erro) {
+          if (erro instanceof TypeError && !controller.signal.aborted && tentativa === 0) continue;
+          throw erro;
+        }
+        if (resposta.status >= 500 && tentativa === 0) continue;
+        if (resposta.status === 429 || resposta.status === 406) {
+          indisponivelAte = Date.now() + 30000;
+          throw new Error('O serviço está ocupado. Aguarde 30 segundos e tente novamente.');
+        }
+        if (!resposta.ok) throw new Error('O serviço de farmácias está indisponível no momento. O mapa pode continuar disponível. Tente um raio menor ou tente novamente mais tarde.');
+        items = normalizarFarmacias(await resposta.json(), origem, raio);
+        break;
       }
-      if (!resposta.ok) throw new Error('O serviço de farmácias está indisponível. Tente novamente mais tarde.');
-      const items = normalizarFarmacias(await resposta.json(), origem, raio);
+      if (!items) throw new Error('Não foi possível consultar as farmácias. Tente novamente mais tarde.');
       if (cache.size >= 6) cache.clear();
       cache.set(key, { data: Date.now(), items });
       return items;

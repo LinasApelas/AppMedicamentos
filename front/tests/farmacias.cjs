@@ -24,7 +24,7 @@ function load(file, imports = {}, globals = {}) {
   ] };
   const f = load('farmacias.ts', {}, { Date: { now: () => clock }, fetch: async (url, options) => {
     calls++;
-    assert.equal(url, 'https://overpass-api.de/api/interpreter');
+    assert.ok(['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter'].includes(url));
     assert.equal(options.credentials, 'omit');
     assert.match(decodeURIComponent(options.body), /around:5000,0,0/);
     if (mode === 'offline') throw new TypeError('network');
@@ -63,6 +63,19 @@ function load(file, imports = {}, globals = {}) {
   assert.ok(pending);
   controller.abort();
   await assert.rejects(request, /aborted/);
+
+  const servidores = [];
+  const fallbackService = load('farmacias.ts', {}, { fetch: async url => {
+    servidores.push(url);
+    return url.includes('overpass-api.de') ? { status: 503, ok: false } : { status: 200, ok: true, json: async () => fixture };
+  } });
+  assert.equal((await fallbackService.criarBuscaFarmacias()(origin, 5, new AbortController().signal)).length, 2);
+  assert.equal(servidores.length, 2);
+  assert.ok(servidores[1].includes('private.coffee'));
+  const callsBefore = calls;
+  mode = 'busy';
+  await assert.rejects(f.criarBuscaFarmacias()(origin, 5, new AbortController().signal), /ocupado/);
+  assert.equal(calls, callsBefore + 1, 'Não contornar limitação 429 com outro servidor');
 
   let permission = { granted: false, canAskAgain: false };
   let enabled = true;

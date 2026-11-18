@@ -16,6 +16,7 @@ function ambiente() {
   const scheduled = new Map(); let permitted = true, user = 1, chamadas = 0, offline = false;
   const session = { usuarioId: 1, versao: 1 };
   const notifications = {
+      setNotificationCategoryAsync: async () => {},
     AndroidImportance: { DEFAULT: 3, HIGH: 4 }, IosAuthorizationStatus: { PROVISIONAL: 3 },
     SchedulableTriggerInputTypes: { DATE: 'date' },
     setNotificationChannelAsync: async () => {},

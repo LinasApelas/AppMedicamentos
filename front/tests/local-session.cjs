@@ -88,6 +88,7 @@ function localDb() {
     const apresentados = [{ request: { identifier: 'entregue', content: { data: { syncmed: true, usuarioId: 1 } } } }];
     let interromperAgendamento = false;
     const notifications = {
+      setNotificationCategoryAsync: async () => {},
       getPermissionsAsync: async () => ({ status: 'granted', granted: true }),
       getAllScheduledNotificationsAsync: async () => [...alarmesAgendados],
       getPresentedNotificationsAsync: async () => [...apresentados],

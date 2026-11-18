@@ -1,5 +1,9 @@
 # SyncMed — Notificação e Alarme
 
+> Atualização de 18/11/2026: veja [Correções Android/iOS](CORRECOES-ANDROID-IOS.md).
+> A revisão acrescenta expo-audio e som contínuo somente em primeiro plano.
+> As descrições abaixo sobre ausência de áudio próprio e dependências refletem a entrega anterior.
+
 ## Entrega e limites
 
 Implementados dois níveis no cadastro e na edição, dosagem opcional, persistência por conta,

@@ -12,7 +12,7 @@ export interface Ocorrencia {
   realizada: string | null; sincronizada: number;
 }
 export const chaveDose = (id: string, prevista: number) => `${id}:${prevista}`;
-export const revisao = (item: Remedio) => JSON.stringify([item.nome, item.dosagem || '', item.nivelAviso || 'NOTIFICACAO', item.inicio, item.dose, item.intervalo, item.frequencia]);
+export const revisao = (item: Remedio) => JSON.stringify(['avisos-v2', item.nome, item.dosagem || '', item.nivelAviso || 'NOTIFICACAO', item.inicio, item.dose, item.intervalo, item.frequencia]);
 const somAlarme = Constants.appOwnership === 'expo' ? 'default' : 'syncmed-alarme.wav';
 let fila: Promise<void> = Promise.resolve();
 export function naFilaAlarmes(operacao: () => Promise<void>): Promise<void> {
@@ -59,6 +59,9 @@ export async function prepararAvisos(pedir: boolean) {
       enableVibrate: true, vibrationPattern: [0, 400, 200, 400], bypassDnd: false,
     });
   }
+  await Notifications.setNotificationCategoryAsync('syncmed-alarme', [{
+    identifier: 'VER_ALARME', buttonTitle: 'Ver medicamento', options: { opensAppToForeground: true },
+  }]);
   const permission = pedir ? await Notifications.requestPermissionsAsync() : await Notifications.getPermissionsAsync();
   return permission.granted || permission.ios?.status === IosAuthorizationStatus.PROVISIONAL;
 }
@@ -72,6 +75,7 @@ export async function programarDose(item: Remedio, prevista: number, disparo: nu
       title: alarme ? '⏰ Hora do medicamento!' : '💊 Hora do medicamento!',
       body: `Está na hora de tomar seu medicamento: ${item.nome}${item.dosagem ? ' — ' + item.dosagem : ''}.`,
       sound: alarme ? somAlarme : 'default',
+      categoryIdentifier: alarme ? 'syncmed-alarme' : undefined,
       data: { syncmed: true, id: item.id, usuarioId: sessao.usuarioId, nivelAviso: item.nivelAviso || 'NOTIFICACAO', prevista, disparo, chave, revisao: revisao(item) },
     },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(disparo), delivery: alarme ? 'alarmClock' : 'bestEffort',

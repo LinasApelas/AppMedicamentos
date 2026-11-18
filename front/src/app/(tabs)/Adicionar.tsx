@@ -170,6 +170,7 @@ export default function Adicionar() {
                         : 'Receba um aviso discreto no horário do medicamento.'}</Text>
                 </TouchableOpacity>)}
             </View>
+            {nivelAviso === 'ALARME' && <Text style={styles.subtitle}>Com o aplicativo aberto, você verá a tela de alarme. Com a tela bloqueada, o celular mostra um aviso; toque nele para abrir. O som depende do volume e das configurações do aparelho.</Text>}
             {nivelAviso === 'ALARME' && Platform.OS === 'android' && Constants.appOwnership !== 'expo' && <View style={styles.input}>
                 <Text style={styles.subtitle}>Sem acesso a alarmes exatos, o Android pode atrasar este aviso. A autorização é opcional e não libera tela cheia.</Text>
                 <Button titulo="Permitir horários exatos" onPress={() => {

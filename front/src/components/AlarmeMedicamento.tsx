@@ -1,3 +1,4 @@
+import { iniciarAlerta, pararAlerta, prepararTelaAlarme } from '../services/alertaPrimeiroPlano';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, AppState, Modal, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -20,6 +21,22 @@ export default function AlarmeMedicamento() {
   const trava = useRef(false);
   const dark = useColorScheme() === 'dark';
   const aviso = avisos[0];
+  const [appAtivo, setAppAtivo] = useState(AppState.currentState === 'active');
+  const [erroSom, setErroSom] = useState(false);
+  useEffect(() => {
+    const listener = AppState.addEventListener('change', state => {
+      if (state !== 'active') pararAlerta();
+      setAppAtivo(state === 'active');
+    });
+    return () => { listener.remove(); pararAlerta(); };
+  }, []);
+  useEffect(() => {
+    let ativo = true;
+    if (aviso && appAtivo && !ocupado && sessaoLocalAtual(sessao)) {
+      void iniciarAlerta().then(() => { if (ativo) setErroSom(false); }).catch(() => { if (ativo) { pararAlerta(); setErroSom(true); } });
+    }
+    return () => { ativo = false; pararAlerta(); };
+  }, [aviso, appAtivo, ocupado, sessao]);
   useEffect(() => {
     let ativo = true;
     const receber = async (n: Notifications.Notification, toque: boolean) => {
@@ -38,6 +55,7 @@ export default function AlarmeMedicamento() {
       void receber(n, toque).catch(() => { if (ativo) Alert.alert('Aviso', 'Não foi possível abrir este alarme. Abra a agenda.'); });
     };
     const received = Notifications.addNotificationReceivedListener(n => executar(n, false));
+    prepararTelaAlarme(true);
     const response = Notifications.addNotificationResponseReceivedListener(r => {
       executar(r.notification, true);
       void Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
@@ -45,11 +63,11 @@ export default function AlarmeMedicamento() {
     void Notifications.getLastNotificationResponseAsync().then(r => {
       if (r) { executar(r.notification, true); void Notifications.clearLastNotificationResponseAsync().catch(() => undefined); }
     }).catch(() => undefined);
-    return () => { ativo = false; received.remove(); response.remove(); };
+    return () => { ativo = false; prepararTelaAlarme(false); pararAlerta(); received.remove(); response.remove(); };
   }, [db, sessao]);
   async function agir(estado: Ocorrencia['estado']) {
     if (!aviso || trava.current || !sessaoLocalAtual(sessao)) return;
-    trava.current = true; setOcupado(true);
+    trava.current = true; pararAlerta(); setOcupado(true);
     try {
       await agirOcorrencia(db, aviso.item, aviso.prevista, estado, sessao);
       if (sessaoLocalAtual(sessao)) {
@@ -63,7 +81,7 @@ export default function AlarmeMedicamento() {
     } finally { trava.current = false; setOcupado(false); }
   }
   const color = dark ? '#E8F7FA' : '#12323A';
-  return <Modal visible={!!aviso && sessaoLocalAtual(sessao)} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => { if (!ocupado) setAvisos(lista => lista.slice(1)); }}>
+  return <Modal visible={!!aviso && sessaoLocalAtual(sessao)} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => { if (!ocupado) { pararAlerta(); setAvisos(lista => lista.slice(1)); } }}>
     <SafeAreaView style={{ flex: 1, backgroundColor: dark ? '#112A30' : '#E6F6F8' }}>
       <ScrollView contentContainerStyle={styles.content}>
         <MaterialIcons name="alarm" size={80} color={dark ? '#99D9EA' : '#238399'} />
@@ -72,6 +90,7 @@ export default function AlarmeMedicamento() {
         {!!aviso?.item.dosagem && <Text style={[styles.detail, { color }]}>{aviso.item.dosagem}</Text>}
         <Text style={[styles.detail, { color }]}>{aviso && new Date(aviso.prevista).toLocaleString()}</Text>
         <View style={styles.badge}><Text style={{ color: '#12323A', fontWeight: '700' }}>● Aviso ativo{avisos.length > 1 ? ` · +${avisos.length - 1} aguardando` : ''}</Text></View>
+        <Text style={[styles.caption, { color }]}>{erroSom ? 'Não foi possível reproduzir o som. O aviso continua ativo; confira se seu aplicativo está atualizado.' : 'Som conforme o volume e o modo silencioso do aparelho.'}</Text>
         <View style={styles.actions}>
           <Button titulo="Já tomei" icon="check" disabled={ocupado} loading={ocupado} onPress={() => void agir('TOMADO')} />
           <Button titulo="Adiar 5 minutos" icon="clock" corFundo="#CCE9EF" disabled={ocupado} onPress={() => void agir('ADIADO')} />

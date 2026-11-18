@@ -338,7 +338,7 @@ class ApiService {
 
   // ===== HISTÓRICOS =====
   async confirmarLembrete(body: { medicamentoId: number; ocorrencia: string; prevista: string; realizada: string }): Promise<string> {
-    return this.request('/historicos/lembretes', { method: 'POST', body });
+    return this.request(`${API_CONFIG.ENDPOINTS.HISTORICOS}/lembretes`, { method: 'POST', body });
   }
 
   async criarHistorico(historicoData: any): Promise<string> {

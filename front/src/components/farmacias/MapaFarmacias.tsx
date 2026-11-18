@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import type { Coordenada, Farmacia, RaioFarmacias } from '../../services/farmacias';
 
@@ -9,13 +9,15 @@ export interface MapaProps {
 
 export default function MapaFarmacias({ origem, farmacias, raio, selecionada, onSelecionar }: MapaProps) {
   const mapa = useRef<MapView>(null);
+  const [pronto, setPronto] = useState(false);
   const escolhida = farmacias.find(item => item.id === selecionada);
   const latitude = escolhida?.latitude ?? origem.latitude;
   const longitude = escolhida?.longitude ?? origem.longitude;
   const delta = escolhida ? 0.012 : raio / 40;
-  useEffect(() => { mapa.current?.animateToRegion({ latitude, longitude,
-    latitudeDelta: delta, longitudeDelta: delta }, 400); }, [latitude, longitude, delta]);
+  useEffect(() => { if (pronto) mapa.current?.animateToRegion({ latitude, longitude,
+    latitudeDelta: delta, longitudeDelta: delta }, 400); }, [pronto, latitude, longitude, delta]);
   return <MapView ref={mapa} style={{ height: 300, width: '100%' }}
+    onMapReady={() => setPronto(true)}
     initialRegion={{ ...origem, latitudeDelta: raio / 40, longitudeDelta: raio / 40 }}
     showsUserLocation={false} showsMyLocationButton={false} showsPointsOfInterests={false} toolbarEnabled={false}>
     <Marker coordinate={origem} title="Sua localização nesta busca" pinColor="#1a73e8" />

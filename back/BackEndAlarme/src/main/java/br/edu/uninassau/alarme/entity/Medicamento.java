@@ -20,7 +20,8 @@ public class Medicamento {
     private String unidadeMedida;
 
     private String descricao;
-    @Column(name = "nivel_aviso", nullable = false, columnDefinition = "varchar(20) default 'NOTIFICACAO'")
+    @Column(name = "nivel_aviso", nullable = false, length = 20)
+    @org.hibernate.annotations.ColumnDefault("'NOTIFICACAO'")
     private String nivelAviso = "NOTIFICACAO";
     private String dosagem;
     public String getNivelAviso() { return nivelAviso; }

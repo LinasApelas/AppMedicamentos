@@ -90,7 +90,7 @@ export default function Farmacias() {
         <View style={styles.searchHeading}>
           <Text style={styles.hint}>Farmácias perto de você</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Sobre a busca e sua localização" style={styles.info}
-            onPress={() => Alert.alert('Sobre a busca', 'Ao abrir esta aba ou atualizar a busca, usamos sua localização para consultar farmácias no OpenStreetMap/Overpass. Não salvamos sua posição nem acompanhamos seus deslocamentos.\n\nAs distâncias são em linha reta. Os cadastros podem estar incompletos ou desatualizados.')}>
+            onPress={() => Alert.alert('Sobre a busca', 'Ao abrir esta aba ou atualizar a busca, usamos sua localização para consultar farmácias no OpenStreetMap/Overpass (servidor principal e Private.coffee como alternativa em caso de falha). Não salvamos sua posição nem acompanhamos seus deslocamentos.\n\nAs distâncias são em linha reta. Os cadastros podem estar incompletos ou desatualizados.')}>
             <MaterialIcons name="info-outline" size={22} color="#52656b" />
           </Pressable>
         </View>
