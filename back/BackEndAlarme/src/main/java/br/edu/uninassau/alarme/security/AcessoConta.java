@@ -47,6 +47,7 @@ public class AcessoConta {
     public Historico historico(Long id, Long usuarioId) {
         if (id == null) throw naoEncontrado();
         return historicos.findByIdAndTratamentoPerfilUsuarioIdAndTratamentoMedicamentoUsuarioId(id, usuarioId, usuarioId)
+                .or(() -> historicos.findByIdAndMedicamentoUsuarioId(id, usuarioId))
                 .orElseThrow(AcessoConta::naoEncontrado);
     }
 

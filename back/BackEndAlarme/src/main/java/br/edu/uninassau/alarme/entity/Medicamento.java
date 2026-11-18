@@ -20,6 +20,24 @@ public class Medicamento {
     private String unidadeMedida;
 
     private String descricao;
+    @Column(name = "nivel_aviso", nullable = false, columnDefinition = "varchar(20) default 'NOTIFICACAO'")
+    private String nivelAviso = "NOTIFICACAO";
+    private String dosagem;
+    public String getNivelAviso() { return nivelAviso; }
+    public void setNivelAviso(String valor) {
+        if (valor != null && !valor.equals("NOTIFICACAO") && !valor.equals("ALARME"))
+            throw new IllegalArgumentException("Nível de aviso inválido");
+        nivelAviso = valor == null ? "NOTIFICACAO" : valor;
+    }
+    public String getDosagem() { return dosagem; }
+    public void setDosagem(String valor) { dosagem = valor; }
+    @OneToMany(mappedBy = "medicamento", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    private List<Historico> registrosLembretes = new ArrayList<>();
+    public void adicionarRegistroLembrete(Historico historico) {
+        registrosLembretes.add(historico);
+        historico.setMedicamento(this);
+    }
 
     // Nullable preserves existing rows; unowned legacy data is not assigned by guessing.
     @ManyToOne

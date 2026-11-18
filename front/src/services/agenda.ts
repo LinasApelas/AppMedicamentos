@@ -1,4 +1,6 @@
 export interface Remedio {
+  nivelAviso?: 'NOTIFICACAO' | 'ALARME';
+  dosagem?: string | null;
   id: string;
   nome: string;
   username: string;

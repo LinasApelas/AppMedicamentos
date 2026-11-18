@@ -24,6 +24,30 @@ public class HistoricoController {
         this.acesso = acesso;
     }
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
+    // A stable occurrence key makes retries after a lost response safe.
+    @PostMapping("/lembretes")
+    public ResponseEntity<String> confirmarLembrete(@RequestBody Confirmacao entrada, HttpServletRequest request) {
+        var medicamento = acesso.medicamento(entrada.medicamentoId(), SessaoUsuario.exigirId(request));
+        if (entrada.ocorrencia() == null || entrada.ocorrencia().isBlank() || entrada.ocorrencia().length() > 200
+                || entrada.prevista() == null || entrada.realizada() == null)
+            return ResponseEntity.badRequest().body("Ocorrência inválida");
+        entityManager.lock(medicamento, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        if (repository.findByMedicamentoIdAndOcorrencia(medicamento.getId(), entrada.ocorrencia()).isEmpty()) {
+            Historico historico = new Historico();
+            medicamento.adicionarRegistroLembrete(historico);
+            historico.setOcorrencia(entrada.ocorrencia());
+            historico.setDataHoraPrevista(entrada.prevista());
+            historico.setDataHoraRealizada(entrada.realizada());
+            historico.setStatus("TOMADO");
+            repository.save(historico);
+        }
+        return ResponseEntity.ok("Medicação confirmada");
+    }
+    public record Confirmacao(Long medicamentoId, String ocorrencia, LocalDateTime prevista, LocalDateTime realizada) { }
+
     @PostMapping
     public ResponseEntity<String> criarHistorico(@RequestBody HistoricoEntrada entrada, HttpServletRequest request) {
         Historico historico = new Historico();
@@ -35,7 +59,9 @@ public class HistoricoController {
     @GetMapping
     public ResponseEntity<List<Historico>> listarHistoricos(HttpServletRequest request) {
         Long usuarioId = SessaoUsuario.exigirId(request);
-        return ResponseEntity.ok(repository.findByTratamentoPerfilUsuarioIdAndTratamentoMedicamentoUsuarioId(usuarioId, usuarioId));
+        var registros = new java.util.ArrayList<>(repository.findByTratamentoPerfilUsuarioIdAndTratamentoMedicamentoUsuarioId(usuarioId, usuarioId));
+        registros.addAll(repository.findByMedicamentoUsuarioId(usuarioId));
+        return ResponseEntity.ok(registros);
     }
 
     @PutMapping("/{id}")

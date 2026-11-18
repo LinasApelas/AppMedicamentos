@@ -7,9 +7,13 @@ export async function inicializarBanco(db: SQLiteDatabase) {
   await db.execAsync(`PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS lembretes (id TEXT PRIMARY KEY NOT NULL, username TEXT, nome TEXT NOT NULL, intervalo INT, frequencia INT, dose TEXT);`);
   const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(lembretes)');
-  for (const [name, type] of [['inicio', 'TEXT'], ['serverId', 'INTEGER'], ['pendente', 'INTEGER NOT NULL DEFAULT 0']]) {
+  for (const [name, type] of [['inicio', 'TEXT'], ['serverId', 'INTEGER'], ['pendente', 'INTEGER NOT NULL DEFAULT 0'], ['nivelAviso', "TEXT NOT NULL DEFAULT 'NOTIFICACAO'"], ['dosagem', 'TEXT']]) {
     if (!columns.some(column => column.name === name)) await db.execAsync(`ALTER TABLE lembretes ADD COLUMN ${name} ${type}`);
   }
+  await db.execAsync(`CREATE TABLE IF NOT EXISTS ocorrencias (
+    chave TEXT PRIMARY KEY NOT NULL, lembreteId TEXT NOT NULL, prevista INTEGER NOT NULL,
+    estado TEXT NOT NULL, adiadaAte INTEGER, realizada TEXT, sincronizada INTEGER NOT NULL DEFAULT 0
+  );`);
   await db.runAsync("UPDATE lembretes SET serverId = CAST(substr(id, 8) AS INTEGER) WHERE id LIKE 'server-%' AND serverId IS NULL");
   // IDs antigos locais são timestamps; conservar o dia real de cadastro.
   const antigos = await db.getAllAsync<Remedio>('SELECT * FROM lembretes WHERE inicio IS NULL');
@@ -20,7 +24,7 @@ export async function inicializarBanco(db: SQLiteDatabase) {
 
 export async function enviarLembrete(db: SQLiteDatabase, item: Remedio, sessao: SessaoLocal = capturarSessaoLocal()) {
   validarSessaoLocal(sessao);
-  const payload = { nome: item.nome, unidadeMedida: 'porção', descricao: `Intervalo: ${item.intervalo}h, Frequência: ${item.frequencia} dias` };
+  const payload = { nivelAviso: item.nivelAviso || 'NOTIFICACAO', dosagem: item.dosagem || '', nome: item.nome, unidadeMedida: 'porção', descricao: `Intervalo: ${item.intervalo}h, Frequência: ${item.frequencia} dias` };
   let serverId = item.serverId;
   if (serverId) {
     try { await apiService.atualizarMedicamento(serverId, payload); }
@@ -47,6 +51,6 @@ export async function sincronizarLembretes(db: SQLiteDatabase, sessao: SessaoLoc
     const existing = await db.getFirstAsync<Remedio>('SELECT * FROM lembretes WHERE serverId = ?', [item.id]);
     validarSessaoLocal(sessao);
     if (existing) continue; // Não substituir horários locais por descrições do catálogo.
-    await db.runAsync('INSERT OR IGNORE INTO lembretes (id, nome, username, serverId) VALUES (?, ?, ?, ?)', [`server-${item.id}`, item.nome, '', item.id]);
+    await db.runAsync('INSERT OR IGNORE INTO lembretes (id, nome, username, serverId, nivelAviso, dosagem) VALUES (?, ?, ?, ?, ?, ?)', [`server-${item.id}`, item.nome, '', item.id, item.nivelAviso || 'NOTIFICACAO', item.dosagem || '']);
   }
 }

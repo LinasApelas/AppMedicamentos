@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "historico")
+@Table(name = "historico", uniqueConstraints = @UniqueConstraint(columnNames = {"medicamento_id", "ocorrencia"}))
 public class Historico {
 
     @Id
@@ -22,10 +22,20 @@ public class Historico {
     private String status;
 
     @ManyToOne
-    @JoinColumn(name = "tratamento_id", nullable = false)
+    @JoinColumn(name = "tratamento_id")
     @JsonIgnoreProperties("historicos")
     private Tratamento tratamento;
 
+    @ManyToOne
+    @JoinColumn(name = "medicamento_id")
+    @JsonIgnoreProperties({"tratamentos", "registrosLembretes"})
+    private Medicamento medicamento;
+    @Column(length = 200)
+    private String ocorrencia;
+    public Medicamento getMedicamento() { return medicamento; }
+    public void setMedicamento(Medicamento valor) { medicamento = valor; }
+    public String getOcorrencia() { return ocorrencia; }
+    public void setOcorrencia(String valor) { ocorrencia = valor; }
     public Historico() {}
 
     public Historico(Long id, LocalDateTime dataHoraPrevista, LocalDateTime dataHoraRealizada, 

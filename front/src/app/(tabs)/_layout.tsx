@@ -1,3 +1,4 @@
+import AlarmeMedicamento from '../../components/AlarmeMedicamento';
 import { Redirect, Tabs, Stack } from 'expo-router';
 import { SQLiteProvider, type SQLiteDatabase } from 'expo-sqlite';
 import { useCallback } from 'react';
@@ -20,7 +21,7 @@ export default function Layout() {
     validarSessaoLocal(sessao);
     const items = await db.getAllAsync<Remedio>('SELECT * FROM lembretes');
     validarSessaoLocal(sessao);
-    try { await atualizarAlarmes(items, false, sessao); }
+    try { await atualizarAlarmes(items, false, sessao, db); }
     catch {
       if (sessaoLocalAtual(sessao)) Alert.alert('Aviso', 'Não foi possível restaurar os alarmes. Abra os lembretes para tentar novamente.');
     }
@@ -28,6 +29,7 @@ export default function Layout() {
   if (restoring) return null;
   if (!user) return <Redirect href="/login" />;
   return <SQLiteProvider key={user.id} databaseName={`medicamentos_usuario_${user.id}.db`} onInit={iniciarBanco}>
+    <AlarmeMedicamento />
     <Stack.Screen options={{ headerShown: false }} />
     <Tabs tabBar={props => <TabBar {...props} />} screenOptions={{
       headerShown: true,

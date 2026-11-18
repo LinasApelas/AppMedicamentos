@@ -1,10 +1,15 @@
+import { apiService } from '../services/api';
 import { Stack } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { ActivityIndicator, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
+  handleNotification: async notification => {
+    const data = notification.request.content.data;
+    const autorizado = data?.syncmed !== true || data?.usuarioId === apiService.currentUser?.id;
+    return { shouldShowBanner: autorizado, shouldShowList: autorizado, shouldPlaySound: autorizado, shouldSetBadge: false };
+  },
 });
 
 export default function Layout() {

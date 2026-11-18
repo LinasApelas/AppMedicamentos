@@ -385,6 +385,29 @@ class SessionIsolationIntegrationTest {
                 .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
     }
 
+    @Test
+    void lembreteConfirmaUmaVezEPreservaIsolamentoENivel() throws Exception {
+        Usuario a = cadastrar("Conta A", "conta.a@example.com");
+        Usuario b = cadastrar("Conta B", "conta.b@example.com");
+        MockHttpSession sa = login(a.getEmail());
+        MockHttpSession sb = login(b.getEmail());
+        mvc.perform(mutation(post("/medicamentos"), sa,
+                "{\"nome\":\"Teste alarme\",\"nivelAviso\":\"ALARME\",\"dosagem\":\"1 comprimido\"}"))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.nivelAviso").value("ALARME"));
+        Medicamento m = medicamentos.findByUsuarioId(a.getId()).get(0);
+        String body = "{\"medicamentoId\":%d,\"ocorrencia\":\"local:123\",\"prevista\":\"2026-11-17T12:00:00\",\"realizada\":\"2026-11-17T12:01:00\"}".formatted(m.getId());
+        mvc.perform(mutation(post("/historicos/lembretes"), sb, body)).andExpect(status().isNotFound());
+        for (int i = 0; i < 2; i++)
+            mvc.perform(mutation(post("/historicos/lembretes"), sa, body)).andExpect(status().isOk());
+        assertEquals(1, historicos.count());
+        mvc.perform(get("/historicos").session(sa)).andExpect(jsonPath("$.length()").value(1));
+        mvc.perform(get("/historicos").session(sb)).andExpect(jsonPath("$.length()").value(0));
+        Long historicoId = historicos.findAll().get(0).getId();
+        mvc.perform(mutation(delete("/historicos/{id}", historicoId), sb, null)).andExpect(status().isNotFound());
+        mvc.perform(mutation(delete("/medicamentos/{id}", m.getId()), sa, null)).andExpect(status().isOk());
+        assertEquals(0, historicos.count());
+    }
+
     private Usuario cadastrar(String nome, String email) throws Exception {
         MvcResult result = mvc.perform(mutation(post("/usuarios"), null,
                         "{\"nome\":\"%s\",\"email\":\"%s\",\"senha\":\"%s\",\"fusoHorario\":\"America/Fortaleza\"}"

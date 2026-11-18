@@ -1,87 +1,143 @@
 import * as Notifications from 'expo-notifications';
-import { AndroidImportance } from 'expo-notifications';
+import { AndroidImportance, IosAuthorizationStatus } from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import type { SQLiteDatabase } from 'expo-sqlite';
 import { dataLocal, horariosDoDia, type Remedio } from './agenda';
 import { capturarSessaoLocal, validarSessaoLocal, type SessaoLocal } from './sessaoLocal';
 
-// Serializar programação e limpeza impede que uma operação antiga recrie alarmes após sair.
+export interface Ocorrencia {
+  chave: string; lembreteId: string; prevista: number;
+  estado: 'TOMADO' | 'DISPENSADO' | 'ADIADO'; adiadaAte: number | null;
+  realizada: string | null; sincronizada: number;
+}
+export const chaveDose = (id: string, prevista: number) => `${id}:${prevista}`;
+export const revisao = (item: Remedio) => JSON.stringify([item.nome, item.dosagem || '', item.nivelAviso || 'NOTIFICACAO', item.inicio, item.dose, item.intervalo, item.frequencia]);
+const somAlarme = Constants.appOwnership === 'expo' ? 'default' : 'syncmed-alarme.wav';
 let fila: Promise<void> = Promise.resolve();
-function naFila(operacao: () => Promise<void>): Promise<void> {
+export function naFilaAlarmes(operacao: () => Promise<void>): Promise<void> {
   const resultado = fila.catch(() => undefined).then(operacao);
   fila = resultado;
   return resultado;
 }
-
 function alarmeDoApp(data: Record<string, unknown> | undefined): boolean {
   return data?.syncmed === true || typeof data?.id === 'string';
 }
-
 export function cancelarTodosAlarmes(): Promise<void> {
-  return naFila(async () => {
+  return naFilaAlarmes(async () => {
     if (Platform.OS === 'web') return;
-    for (const notification of await Notifications.getAllScheduledNotificationsAsync()) {
-      if (alarmeDoApp(notification.content.data)) await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+    for (const n of await Notifications.getAllScheduledNotificationsAsync()) {
+      if (alarmeDoApp(n.content.data)) await Notifications.cancelScheduledNotificationAsync(n.identifier);
     }
-    for (const notification of await Notifications.getPresentedNotificationsAsync()) {
-      if (alarmeDoApp(notification.request.content.data)) await Notifications.dismissNotificationAsync(notification.request.identifier);
+    for (const n of await Notifications.getPresentedNotificationsAsync()) {
+      if (alarmeDoApp(n.request.content.data)) await Notifications.dismissNotificationAsync(n.request.identifier);
     }
   });
 }
-
 export function cancelarAlarmes(id: string, sessao: SessaoLocal = capturarSessaoLocal()): Promise<void> {
-  return naFila(async () => {
+  return naFilaAlarmes(async () => {
     validarSessaoLocal(sessao);
     if (Platform.OS === 'web') return;
-    for (const notification of await Notifications.getAllScheduledNotificationsAsync()) {
+    for (const n of await Notifications.getAllScheduledNotificationsAsync()) {
       validarSessaoLocal(sessao);
-      if (notification.content.data?.id === id && notification.content.data?.usuarioId === sessao.usuarioId) {
-        await Notifications.cancelScheduledNotificationAsync(notification.identifier);
-      }
+      if (n.content.data?.id === id && n.content.data?.usuarioId === sessao.usuarioId)
+        await Notifications.cancelScheduledNotificationAsync(n.identifier);
+    }
+    for (const n of await Notifications.getPresentedNotificationsAsync()) {
+      if (n.request.content.data?.id === id && n.request.content.data?.usuarioId === sessao.usuarioId)
+        await Notifications.dismissNotificationAsync(n.request.identifier);
     }
   });
 }
-
-// Mantém uma fila global de até 60 notificações; repõe ao abrir a agenda.
-export function atualizarAlarmes(items: Remedio[], pedirPermissao = false, sessao: SessaoLocal = capturarSessaoLocal()): Promise<void> {
-  return naFila(async () => {
-  validarSessaoLocal(sessao);
-  if (Platform.OS === 'web') return;
-  const permission = pedirPermissao ? await Notifications.requestPermissionsAsync() : await Notifications.getPermissionsAsync();
-  validarSessaoLocal(sessao);
-  if (permission.status !== 'granted') return;
-  if (Platform.OS === 'android') await Notifications.setNotificationChannelAsync('remedios-urgentes', {
-    name: 'Alarmes de medicamentos', importance: AndroidImportance.MAX, sound: 'default',
-  });
-  validarSessaoLocal(sessao);
-  const now = Date.now();
-  const doses: { item: Remedio; date: Date }[] = [];
-  for (const item of items) {
-    let count = 0;
-    for (let day = 0; day < 366 && count < 60; day++) {
-      const date = new Date();
-      date.setDate(date.getDate() + day);
-      for (const dose of horariosDoDia(item, dataLocal(date))) {
-        if (dose.getTime() > now) { doses.push({ item, date: dose }); count++; }
-      }
-    }
-  }
-  const wanted = doses.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 60);
-  const ids = new Set(wanted.map(({ item, date }) => `dose:${sessao.usuarioId}:${item.id}:${date.getTime()}:${item.nome}`));
-  const current = await Notifications.getAllScheduledNotificationsAsync();
-  validarSessaoLocal(sessao);
-  for (const notification of current) {
-    validarSessaoLocal(sessao);
-    if (alarmeDoApp(notification.content.data) && !ids.has(notification.identifier)) await Notifications.cancelScheduledNotificationAsync(notification.identifier);
-  }
-  const existing = new Set(current.map(notification => notification.identifier));
-  for (const { item, date } of wanted) {
-    validarSessaoLocal(sessao);
-    const identifier = `dose:${sessao.usuarioId}:${item.id}:${date.getTime()}:${item.nome}`;
-    if (existing.has(identifier)) continue;
-    await Notifications.scheduleNotificationAsync({ identifier,
-      content: { title: 'Hora do medicamento', body: item.nome, sound: 'default', data: { syncmed: true, id: item.id, usuarioId: sessao.usuarioId } },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date, channelId: 'remedios-urgentes' },
+export async function prepararAvisos(pedir: boolean) {
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('syncmed-notificacao-v1', {
+      name: 'Notificações de medicamentos', importance: AndroidImportance.DEFAULT, sound: 'default',
+    });
+    await Notifications.setNotificationChannelAsync('syncmed-alarme-v1', {
+      name: 'Alarmes de medicamentos', importance: AndroidImportance.HIGH, sound: somAlarme,
+      enableVibrate: true, vibrationPattern: [0, 400, 200, 400], bypassDnd: false,
     });
   }
+  const permission = pedir ? await Notifications.requestPermissionsAsync() : await Notifications.getPermissionsAsync();
+  return permission.granted || permission.ios?.status === IosAuthorizationStatus.PROVISIONAL;
+}
+export async function programarDose(item: Remedio, prevista: number, disparo: number, sessao: SessaoLocal) {
+  validarSessaoLocal(sessao);
+  const alarme = item.nivelAviso === 'ALARME';
+  const chave = chaveDose(item.id, prevista);
+  await Notifications.scheduleNotificationAsync({
+    identifier: `syncmed:${sessao.usuarioId}:${chave}:${disparo}:${revisao(item)}`,
+    content: {
+      title: alarme ? '⏰ Hora do medicamento!' : '💊 Hora do medicamento!',
+      body: `Está na hora de tomar seu medicamento: ${item.nome}${item.dosagem ? ' — ' + item.dosagem : ''}.`,
+      sound: alarme ? somAlarme : 'default',
+      data: { syncmed: true, id: item.id, usuarioId: sessao.usuarioId, nivelAviso: item.nivelAviso || 'NOTIFICACAO', prevista, disparo, chave, revisao: revisao(item) },
+    },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(disparo), delivery: alarme ? 'alarmClock' : 'bestEffort',
+      channelId: alarme ? 'syncmed-alarme-v1' : 'syncmed-notificacao-v1' },
+  });
+}
+// Used inside the serialized queue only. Never cancels other occurrences.
+export async function limparOcorrencia(chave: string, sessao: SessaoLocal) {
+  validarSessaoLocal(sessao);
+  if (Platform.OS === 'web') return;
+  for (const n of await Notifications.getAllScheduledNotificationsAsync()) {
+    if (n.content.data?.chave === chave && n.content.data?.usuarioId === sessao.usuarioId)
+      await Notifications.cancelScheduledNotificationAsync(n.identifier);
+  }
+  for (const n of await Notifications.getPresentedNotificationsAsync()) {
+    if (n.request.content.data?.chave === chave && n.request.content.data?.usuarioId === sessao.usuarioId)
+      await Notifications.dismissNotificationAsync(n.request.identifier);
+  }
+}
+export function atualizarAlarmes(items: Remedio[], pedirPermissao = false, sessao: SessaoLocal = capturarSessaoLocal(), db?: SQLiteDatabase): Promise<void> {
+  return naFilaAlarmes(async () => {
+    validarSessaoLocal(sessao);
+    if (Platform.OS === 'web') return;
+    const permitido = await prepararAvisos(pedirPermissao);
+    validarSessaoLocal(sessao);
+    const ocorrencias = db ? await db.getAllAsync<Ocorrencia>('SELECT * FROM ocorrencias') : [];
+    const estados = new Map(ocorrencias.map(o => [o.chave, o]));
+    const now = Date.now();
+    const doses: { item: Remedio; prevista: number; disparo: number }[] = [];
+    for (const item of items) {
+      let count = 0;
+      for (let day = 0; day < 366 && count < 60; day++) {
+        const date = new Date(now); date.setDate(date.getDate() + day);
+        for (const dose of horariosDoDia(item, dataLocal(date))) {
+          const prevista = dose.getTime();
+          if (prevista > now && !estados.has(chaveDose(item.id, prevista))) {
+            doses.push({ item, prevista, disparo: prevista }); count++;
+          }
+        }
+      }
+      for (const o of ocorrencias) {
+        if (o.lembreteId === item.id && o.estado === 'ADIADO' && o.adiadaAte && o.adiadaAte > now)
+          doses.push({ item, prevista: o.prevista, disparo: o.adiadaAte });
+      }
+    }
+    const wanted = permitido ? doses.sort((a, b) => a.disparo - b.disparo).slice(0, 60) : [];
+    const identifier = ({ item, prevista, disparo }: typeof doses[number]) => `syncmed:${sessao.usuarioId}:${chaveDose(item.id, prevista)}:${disparo}:${revisao(item)}`;
+    const ids = new Set(wanted.map(identifier));
+    const current = await Notifications.getAllScheduledNotificationsAsync();
+    for (const n of await Notifications.getPresentedNotificationsAsync()) {
+      validarSessaoLocal(sessao);
+      const data = n.request.content.data;
+      if (!alarmeDoApp(data)) continue;
+      const item = items.find(item => item.id === data?.id);
+      if (!item || data?.usuarioId !== sessao.usuarioId || data?.revisao !== revisao(item))
+        await Notifications.dismissNotificationAsync(n.request.identifier);
+    }
+    for (const n of current) {
+      validarSessaoLocal(sessao);
+      if (alarmeDoApp(n.content.data) && !ids.has(n.identifier)) await Notifications.cancelScheduledNotificationAsync(n.identifier);
+    }
+    const existing = new Set(current.map(n => n.identifier));
+    for (const dose of wanted) {
+      validarSessaoLocal(sessao);
+      if (!existing.has(identifier(dose))) await programarDose(dose.item, dose.prevista, dose.disparo, sessao);
+    }
+    if (!permitido) throw new Error('Notificações não autorizadas. Ative-as nos ajustes do aparelho.');
   });
 }

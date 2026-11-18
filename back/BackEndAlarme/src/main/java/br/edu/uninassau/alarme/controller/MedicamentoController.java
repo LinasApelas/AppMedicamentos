@@ -31,6 +31,8 @@ public class MedicamentoController {
     public ResponseEntity<Medicamento> criar(@RequestBody Medicamento entrada, HttpServletRequest request) {
         Long usuarioId = SessaoUsuario.exigirId(request);
         Medicamento medicamento = new Medicamento(null, entrada.getNome(), entrada.getUnidadeMedida(), entrada.getDescricao());
+        medicamento.setNivelAviso(entrada.getNivelAviso());
+        medicamento.setDosagem(entrada.getDosagem());
         medicamento.setUsuario(acesso.usuario(usuarioId));
         return ResponseEntity.status(201).body(repository.save(medicamento));
     }
@@ -46,6 +48,8 @@ public class MedicamentoController {
         Long usuarioId = SessaoUsuario.exigirId(request);
         Medicamento medicamento = acesso.medicamento(id, usuarioId);
         verificarVinculos(id, usuarioId);
+        medicamento.setNivelAviso(entrada.getNivelAviso());
+        medicamento.setDosagem(entrada.getDosagem());
         medicamento.setNome(entrada.getNome());
         medicamento.setUnidadeMedida(entrada.getUnidadeMedida());
         medicamento.setDescricao(entrada.getDescricao());

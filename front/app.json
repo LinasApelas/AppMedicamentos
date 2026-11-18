@@ -17,7 +17,11 @@
         "backgroundImage": "./src/img/Logo-square.png",
         "monochromeImage": "./src/img/Logo-square.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.SCHEDULE_EXACT_ALARM"
+      ],
+      "package": "com.claudemir_junior.AppMedicamentos"
     },
     "web": {
       "output": "static",
@@ -38,12 +42,23 @@
         }
       ],
       "expo-sqlite",
-      ["expo-location", {
-        "locationWhenInUsePermission": "O SyncMed usa sua localização para encontrar farmácias próximas quando você solicita uma busca.",
-        "isIosBackgroundLocationEnabled": false,
-        "isAndroidBackgroundLocationEnabled": false,
-        "isAndroidForegroundServiceEnabled": false
-      }]
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O SyncMed usa sua localização para encontrar farmácias próximas quando você solicita uma busca.",
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/syncmed-alarme.wav"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

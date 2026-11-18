@@ -1,3 +1,4 @@
+import { sincronizarConfirmacoes } from '../../services/ocorrencias';
 import React, { useCallback, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
@@ -16,7 +17,9 @@ export default function Lembretes() {
   const [sessao] = useState(capturarSessaoLocal);
   const [selectedDate, setSelectedDate] = useState(dataLocal());
   const [remedios, setRemedios] = useState<Remedio[]>([]);
+  const [confirmacoes, setConfirmacoes] = useState<{ chave: string; nome: string; realizada: string; sincronizada: number }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [avisoAgendamento, setAvisoAgendamento] = useState(false);
   const [syncError, setSyncError] = useState(false);
   const [mostrarTodos, setMostrarTodos] = useState(false);
 
@@ -27,13 +30,16 @@ export default function Lembretes() {
       const locais = await db.getAllAsync<Remedio>('SELECT * FROM lembretes ORDER BY nome');
       validarSessaoLocal(sessao);
       setRemedios(locais);
-      try { await sincronizarLembretes(db, sessao); if (sessaoLocalAtual(sessao)) setSyncError(false); }
+      try { await sincronizarLembretes(db, sessao); await sincronizarConfirmacoes(db, sessao); if (sessaoLocalAtual(sessao)) setSyncError(false); }
       catch { if (sessaoLocalAtual(sessao)) setSyncError(true); }
       validarSessaoLocal(sessao);
       const items = await db.getAllAsync<Remedio>('SELECT * FROM lembretes ORDER BY nome');
       validarSessaoLocal(sessao);
       setRemedios(items);
-      await atualizarAlarmes(items, false, sessao).catch(() => undefined);
+      const historico = await db.getAllAsync<{ chave: string; nome: string; realizada: string; sincronizada: number }>("SELECT o.chave, l.nome, o.realizada, o.sincronizada FROM ocorrencias o JOIN lembretes l ON l.id=o.lembreteId WHERE o.estado='TOMADO' ORDER BY o.realizada DESC LIMIT 10");
+      validarSessaoLocal(sessao); setConfirmacoes(historico);
+      try { await atualizarAlarmes(items, false, sessao, db); if (sessaoLocalAtual(sessao)) setAvisoAgendamento(false); }
+      catch { if (sessaoLocalAtual(sessao)) setAvisoAgendamento(true); }
     } catch { if (sessaoLocalAtual(sessao)) Alert.alert('Erro', 'Não foi possível carregar os medicamentos.'); }
     finally { if (sessaoLocalAtual(sessao)) setLoading(false); }
   }, [db, sessao]);
@@ -69,6 +75,7 @@ export default function Lembretes() {
       <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: mostrarTodos }} style={[styles.tab, mostrarTodos && styles.selected]} onPress={() => setMostrarTodos(true)}><Text style={styles.tabText}>Todos ({remedios.length})</Text></TouchableOpacity>
     </View>
     <Text style={styles.section}>{mostrarTodos ? 'Medicamentos cadastrados' : `Programado para ${selectedDate.split('-').reverse().join('/')}`}</Text>
+    {avisoAgendamento && <Text style={styles.notice}>Não foi possível atualizar os avisos. Confira as permissões de notificação nos ajustes do aparelho e atualize a agenda.</Text>}
     {syncError && <Text style={styles.notice}>Sem conexão com o servidor. Exibindo os dados salvos no aparelho.</Text>}
     {semAgenda > 0 && <Text style={styles.notice}>{semAgenda} cadastro(s) sem programação completa. Abra “Todos” e edite para definir os horários.</Text>}
     {lista.length === 0 && <View style={styles.card}><Text style={styles.text}>{loading ? 'Carregando…' : 'Nenhum medicamento programado para este dia.'}</Text></View>}
@@ -77,6 +84,7 @@ export default function Lembretes() {
         <TouchableOpacity style={styles.action} accessibilityRole="button" accessibilityLabel={`Editar ${item.nome}`} onPress={() => router.push({ pathname: '/Adicionar', params: { id: item.id } })}><MaterialIcons name="edit" size={22} color="#1a73e8" /></TouchableOpacity>
         <TouchableOpacity style={styles.action} accessibilityRole="button" accessibilityLabel={`Excluir ${item.nome}`} onPress={() => excluir(item)}><MaterialIcons name="delete-outline" size={22} color="#c0392b" /></TouchableOpacity>
       </View>
+      <Text style={styles.text}>{item.nivelAviso === 'ALARME' ? '⏰ Alarme' : '🔔 Notificação'}{item.dosagem ? ' · ' + item.dosagem : ''}</Text>
       <Text style={styles.text}>Para: {item.username || 'Você'}</Text>
       <Text style={styles.text}>{item.inicio ? `Início: ${item.inicio.split('-').reverse().join('/')}` : 'Data de início não definida'}</Text>
       <Text style={styles.text}>{item.intervalo ? `A cada ${item.intervalo}h · ${item.frequencia || '?'} dias` : 'Edite para completar a programação'}</Text>
@@ -85,6 +93,8 @@ export default function Lembretes() {
       {!!item.pendente && <Text style={styles.notice}>Sincronização pendente</Text>}
     </View>)}
     <Button titulo="Adicionar medicamento" icon="plus" onPress={() => router.push({ pathname: '/Adicionar', params: { id: '' } })} />
+    <Text style={styles.section}>Confirmações recentes neste aparelho</Text>
+    {confirmacoes.map(c => <Text key={c.chave} style={styles.text}>{c.nome} · {c.realizada.replace('T', ' ')} · {c.sincronizada ? 'Sincronizado' : 'Salvo no aparelho, sincronização pendente'}</Text>)}
     <Text style={styles.footnote}>Os horários seguem o fuso do aparelho. A fila dos próximos alarmes é renovada ao abrir esta agenda; mantenha as notificações permitidas.</Text>
   </ScrollView>;
 }

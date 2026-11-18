@@ -88,7 +88,7 @@ function localDb() {
     const apresentados = [{ request: { identifier: 'entregue', content: { data: { syncmed: true, usuarioId: 1 } } } }];
     let interromperAgendamento = false;
     const notifications = {
-      getPermissionsAsync: async () => ({ status: 'granted' }),
+      getPermissionsAsync: async () => ({ status: 'granted', granted: true }),
       getAllScheduledNotificationsAsync: async () => [...alarmesAgendados],
       getPresentedNotificationsAsync: async () => [...apresentados],
       cancelScheduledNotificationAsync: async id => { const index = alarmesAgendados.findIndex(n => n.identifier === id); if (index >= 0) alarmesAgendados.splice(index, 1); },
@@ -98,13 +98,14 @@ function localDb() {
     };
     const alarmes = load('src/services/alarmes.ts', {
       'expo-notifications': notifications, 'react-native': { Platform: { OS: 'ios' } },
+      'expo-constants': { default: { appOwnership: 'expo' } },
       './agenda': { dataLocal: () => '2026-01-01', horariosDoDia: () => [new Date(Date.now() + 60000)] },
       './sessaoLocal': session,
     });
     await alarmes.atualizarAlarmes([item]);
     assert(alarmesAgendados.length > 0);
     assert(alarmesAgendados.every(n => n.content.data.usuarioId === 1));
-    assert(alarmesAgendados.every(n => n.identifier.startsWith('dose:1:')));
+    assert(alarmesAgendados.every(n => n.identifier.startsWith('syncmed:1:')));
     await alarmes.cancelarTodosAlarmes();
     assert.equal(alarmesAgendados.length, 0);
     assert.equal(apresentados.length, 0);

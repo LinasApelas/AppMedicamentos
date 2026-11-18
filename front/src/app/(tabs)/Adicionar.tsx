@@ -1,3 +1,5 @@
+import Constants from 'expo-constants';
+import { requestExactAlarmPermissionsAsync } from 'expo-notifications';
 import Motion from '../../components/Motion';
 import { StyleSheet, Text, TouchableOpacity, View, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import Button from '../../components/Button';
@@ -23,13 +25,15 @@ export default function Adicionar() {
     const [inicio, setInicio] = useState(dataLocal());
     const [intervalo, setIntervalo] = useState('');
     const [frequencia, setFrequencia] = useState('');
+    const [nivelAviso, setNivelAviso] = useState<'NOTIFICACAO' | 'ALARME'>('NOTIFICACAO');
+    const [dosagem, setDosagem] = useState('');
     const [loading, setLoading] = useState(false);
     const [carregando, setCarregando] = useState(false);
 
     useFocusEffect(useCallback(() => {
         let active = true;
         if (!sessaoLocalAtual(sessao)) return;
-        setOriginal(null);
+        setOriginal(null); setNivelAviso('NOTIFICACAO'); setDosagem('');
         setMedicacao(''); setNomePessoa(''); setParaOutraPessoa(false);
         setProximaDose(''); setIntervalo(''); setFrequencia(''); setInicio(dataLocal());
         if (id) {
@@ -37,7 +41,7 @@ export default function Adicionar() {
             db.getFirstAsync<Remedio>('SELECT * FROM lembretes WHERE id = ?', [id]).then(item => {
                 if (!active || !sessaoLocalAtual(sessao)) return;
                 if (!item) throw new Error('Medicamento não encontrado');
-                setOriginal(item); setMedicacao(item.nome); setNomePessoa(item.username || '');
+                setNivelAviso(item.nivelAviso || 'NOTIFICACAO'); setDosagem(item.dosagem || ''); setOriginal(item); setMedicacao(item.nome); setNomePessoa(item.username || '');
                 setParaOutraPessoa(!!item.username); setProximaDose(/^\d{2}:\d{2}$/.test(item.dose || '') ? item.dose! : '');
                 setIntervalo(item.intervalo?.toString() || ''); setFrequencia(item.frequencia?.toString() || '');
                 setInicio(item.inicio || dataLocal());
@@ -60,19 +64,20 @@ export default function Adicionar() {
         }
         setLoading(true);
         const item: Remedio = { id: original?.id || Date.now().toString(), nome: nomeMedicacao.trim(),
-            username: ParaOutraPessoa ? nomePessoa.trim() : '', dose: proximaDose, inicio,
+            nivelAviso, dosagem: dosagem.trim(), username: ParaOutraPessoa ? nomePessoa.trim() : '', dose: proximaDose, inicio,
             intervalo: Number(intervalo), frequencia: Number(frequencia), serverId: original?.serverId || null, pendente: 1 };
         try {
-            await db.runAsync(`INSERT INTO lembretes (id, username, nome, intervalo, frequencia, dose, inicio, serverId, pendente)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1) ON CONFLICT(id) DO UPDATE SET username=excluded.username,
+            await db.runAsync(`INSERT INTO lembretes (id, username, nome, intervalo, frequencia, dose, inicio, serverId, nivelAviso, dosagem, pendente)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) ON CONFLICT(id) DO UPDATE SET username=excluded.username,
                 nome=excluded.nome, intervalo=excluded.intervalo, frequencia=excluded.frequencia, dose=excluded.dose,
-                inicio=excluded.inicio, pendente=1`,
-                [item.id, item.username, item.nome, item.intervalo, item.frequencia, item.dose, item.inicio, item.serverId]);
+                inicio=excluded.inicio, nivelAviso=excluded.nivelAviso, dosagem=excluded.dosagem, pendente=1`,
+                [item.id, item.username, item.nome, item.intervalo, item.frequencia, item.dose, item.inicio, item.serverId, nivelAviso, item.dosagem || '']);
+            await db.runAsync("DELETE FROM ocorrencias WHERE lembreteId = ? AND estado = 'ADIADO'", [item.id]);
             validarSessaoLocal(sessao);
             try { await enviarLembrete(db, item, sessao); }
             catch { if (sessaoLocalAtual(sessao)) Alert.alert('Salvo no aparelho', 'A sincronização será tentada novamente ao abrir os lembretes.'); }
             validarSessaoLocal(sessao);
-            try { await atualizarAlarmes(await db.getAllAsync<Remedio>('SELECT * FROM lembretes'), true, sessao); }
+            try { await atualizarAlarmes(await db.getAllAsync<Remedio>('SELECT * FROM lembretes'), true, sessao, db); }
             catch { if (sessaoLocalAtual(sessao)) Alert.alert('Aviso', 'Medicamento salvo, mas não foi possível atualizar os alarmes. Confira a permissão de notificações.'); }
             validarSessaoLocal(sessao);
             router.setParams({ id: undefined });
@@ -152,6 +157,27 @@ export default function Adicionar() {
             <Text style={styles.subtitle}>A duração inclui o dia de início. Os horários são calculados a partir da primeira dose.</Text>
         </View>
 
+            <View style={styles.input}>
+                <Input label="Dosagem (opcional)" placeholder="Ex.: 1 comprimido" value={dosagem} onChangeText={setDosagem} iconName="info" />
+                <Text style={styles.title}>Nível do aviso</Text>
+                {(['NOTIFICACAO', 'ALARME'] as const).map(nivel => <TouchableOpacity key={nivel}
+                    accessibilityRole="radio" accessibilityState={{ checked: nivelAviso === nivel }}
+                    onPress={() => setNivelAviso(nivel)} style={{ padding: 16, borderRadius: 16, borderWidth: 2,
+                        borderColor: nivelAviso === nivel ? '#238399' : '#E2F1F8', backgroundColor: nivelAviso === nivel ? '#E6F6F8' : '#fff', marginBottom: 12 }}>
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: '#12323A' }}>{nivel === 'ALARME' ? 'Alarme' : 'Notificação'}</Text>
+                    <Text style={{ color: '#52656b', marginTop: 6 }}>{nivel === 'ALARME'
+                        ? 'Receba um aviso destacado com som e tela de alarme, conforme os recursos permitidos pelo celular.'
+                        : 'Receba um aviso discreto no horário do medicamento.'}</Text>
+                </TouchableOpacity>)}
+            </View>
+            {nivelAviso === 'ALARME' && Platform.OS === 'android' && Constants.appOwnership !== 'expo' && <View style={styles.input}>
+                <Text style={styles.subtitle}>Sem acesso a alarmes exatos, o Android pode atrasar este aviso. A autorização é opcional e não libera tela cheia.</Text>
+                <Button titulo="Permitir horários exatos" onPress={() => {
+                    void requestExactAlarmPermissionsAsync().then(result => {
+                        Alert.alert('Horários exatos', result.granted ? 'Acesso permitido. Salve o lembrete para atualizar os avisos.' : 'Acesso não concedido. O sistema poderá atrasar os avisos.');
+                    }).catch(() => Alert.alert('Horários exatos', 'Disponível em uma build nativa atualizada. Confira as permissões nos ajustes do Android.'));
+                }} />
+            </View>}
             <View style={styles.botao}>
                 <Button
                     titulo={carregando ? 'Carregando...' : loading ? 'Salvando...' : id ? 'Salvar alterações' : 'Salvar'}
