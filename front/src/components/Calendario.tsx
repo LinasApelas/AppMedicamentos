@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -9,16 +9,8 @@ interface CalendarioProps {
 }
 
 export default function Calendario({ onDateSelected, selectedDate, hasSchedule }: CalendarioProps) {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [today, setToday] = useState('');
-
-  useEffect(() => {
-    // Pega a data atual do dispositivo
-    const now = new Date();
-    const dateString = formatDate(now);
-    setToday(dateString);
-    setCurrentDate(new Date(now));
-  }, []);
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const today = formatDate(new Date());
 
   function pad(n: number) {
     return n < 10 ? `0${n}` : `${n}`;

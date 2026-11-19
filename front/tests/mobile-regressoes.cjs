@@ -1,4 +1,3 @@
-/* global __dirname */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),ts=require('typescript');
 function load(name,imports={},globals={}) {
  const exports={};
@@ -10,7 +9,7 @@ test('áudio único, parada durante preparação e segundo plano',async()=>{
  const players=[];let resolveMode;
  const state={currentState:'active'};
  const audio={setAudioModeAsync:async mode=>{assert.equal(mode.playsInSilentMode,false);assert.equal(mode.shouldPlayInBackground,false)},createAudioPlayer:()=>{const p={playing:false,removed:false,play(){this.playing=true},pause(){this.playing=false},remove(){this.removed=true}};players.push(p);return p}};
- const service=load('alertaPrimeiroPlano',{'react-native':{AppState:state,Platform:{OS:'ios'},Vibration:{vibrate(){},cancel(){}}},'expo-audio':audio,'../../assets/sounds/syncmed-alarme.wav':1});
+ const service=load('alertaPrimeiroPlano',{'react-native':{AppState:state,Platform:{OS:'ios'},Vibration:{vibrate(){},cancel(){}}},'expo':{requireOptionalNativeModule:()=>({})},'expo-audio':audio,'../../assets/sounds/syncmed-alarme.wav':1});
  await service.iniciarAlerta();assert.equal(players[0].playing,true);assert.equal(players[0].loop,true);
  await service.iniciarAlerta();assert.equal(players[0].removed,true);assert.equal(players[1].playing,true);
  service.pararAlerta();assert.equal(players[1].playing,false);
@@ -31,4 +30,10 @@ test('API configurável para iPhone, Android e navegador',()=>{
  assert.equal(config('ios','192.0.2.1:8081'),'http://192.0.2.1:8080');
  assert.equal(config('android',undefined),'http://10.0.2.2:8080');
  assert.equal(config('web',undefined,undefined,{location:{hostname:'localhost'}}),'http://localhost:8080');
+});
+
+test('módulo nativo ausente mantém som da notificação e não importa áudio',async()=>{
+ const service=load('alertaPrimeiroPlano',{'react-native':{AppState:{currentState:'active'},Platform:{OS:'ios'},Vibration:{vibrate(){},cancel(){}}},'expo':{requireOptionalNativeModule:()=>null}});
+ service.prepararTelaAlarme(true);assert.equal(service.telaAlarmeDisponivel(),false);
+ await assert.rejects(service.iniciarAlerta(),/Áudio nativo indisponível/);
 });
