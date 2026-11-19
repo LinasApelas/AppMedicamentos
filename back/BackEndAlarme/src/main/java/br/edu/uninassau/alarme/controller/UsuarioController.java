@@ -96,6 +96,7 @@ public class UsuarioController {
         if (!id.equals(SessaoUsuario.exigirId(request))) return ResponseEntity.notFound().build();
         if (usuarioRepository.existsById(id)) {
             acesso.verificarExclusaoUsuario(id);
+            usuarioService.verificarExclusao(id);
             usuarioRepository.deleteById(id);
             SessaoUsuario.encerrar(request, response);
             return ResponseEntity.ok("Usuario deletado com Sucesso!!");
