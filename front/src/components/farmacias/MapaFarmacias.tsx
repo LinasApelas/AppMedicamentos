@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import type { Coordenada, Farmacia, RaioFarmacias } from '../../services/farmacias';
 
+// Google Maps ignores the Apple-only showsPointsOfInterests setting.
+const estiloMapa = [
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+];
+
 export interface MapaProps {
   origem: Coordenada; farmacias: Farmacia[]; raio: RaioFarmacias;
   selecionada: string | null; onSelecionar: (id: string) => void;
@@ -19,8 +25,8 @@ export default function MapaFarmacias({ origem, farmacias, raio, selecionada, on
   return <MapView ref={mapa} style={{ height: 300, width: '100%' }}
     onMapReady={() => setPronto(true)}
     initialRegion={{ ...origem, latitudeDelta: raio / 40, longitudeDelta: raio / 40 }}
+    customMapStyle={estiloMapa}
     showsUserLocation={false} showsMyLocationButton={false} showsPointsOfInterests={false} toolbarEnabled={false}>
-    <Marker coordinate={origem} title="Sua localização nesta busca" pinColor="#1a73e8" />
     <Circle center={origem} radius={raio * 1000} strokeColor="#1a73e8" fillColor="rgba(157,215,226,0.12)" />
     {farmacias.map(item => <Marker key={item.id} coordinate={item} title={item.nome}
       description={item.endereco} pinColor={item.id === selecionada ? '#12323A' : '#d43b40'}

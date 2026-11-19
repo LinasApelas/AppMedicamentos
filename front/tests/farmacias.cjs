@@ -49,7 +49,9 @@ function load(file, imports = {}, globals = {}) {
   await search(origin, 5, new AbortController().signal);
   await search(origin, 5, new AbortController().signal);
   assert.equal(calls, 1, 'cache must avoid another request');
-  await assert.rejects(search(origin, 2, new AbortController().signal), /15 segundos/);
+  assert.equal((await search(origin, 2, new AbortController().signal)).length, 2);
+  assert.equal(calls, 1, 'Diminuir raio deve filtrar o cache sem consulta nem espera');
+  await assert.rejects(search(origin, 10, new AbortController().signal), /15 segundos/);
   clock += 301000;
   await search(origin, 5, new AbortController().signal);
   assert.equal(calls, 2, 'expired cache must refresh');
@@ -72,10 +74,73 @@ function load(file, imports = {}, globals = {}) {
   assert.equal((await fallbackService.criarBuscaFarmacias()(origin, 5, new AbortController().signal)).length, 2);
   assert.equal(servidores.length, 2);
   assert.ok(servidores[1].includes('private.coffee'));
+  for (const falha of ['503', '408', 'timeout', 'partial', 'json']) {
+    let tentativas = 0;
+    const recuperacao = load('farmacias.ts', {}, {
+      SyntaxError,
+      setTimeout: (callback, ms) => setTimeout(callback, ms === 11000 ? 1 : ms),
+      fetch: async (_url, options) => {
+        tentativas++;
+        if (tentativas === 1) {
+          if (falha === '503' || falha === '408') return { status: Number(falha), ok: false };
+          if (falha === 'partial') return { status: 200, ok: true, json: async () => ({ elements: [], remark: 'timeout' }) };
+          if (falha === 'json') return { status: 200, ok: true, json: async () => { throw new SyntaxError('HTML'); } };
+          return new Promise((_, reject) => options.signal.addEventListener('abort', () => reject(new Error('timeout'))));
+        }
+        return { status: 200, ok: true, json: async () => fixture };
+      },
+    });
+    assert.equal((await recuperacao.criarBuscaFarmacias()(origin, 5, new AbortController().signal)).length, 2);
+    assert.equal(tentativas, 2, `Recuperar falha ${falha} usando a alternativa`);
+  }
   const callsBefore = calls;
   mode = 'busy';
   await assert.rejects(f.criarBuscaFarmacias()(origin, 5, new AbortController().signal), /ocupado/);
   assert.equal(calls, callsBefore + 1, 'Não contornar limitação 429 com outro servidor');
+
+  let refusedCalls = 0;
+  const refused = load('farmacias.ts', {}, { fetch: async () => {
+    refusedCalls++; return { status: 406, ok: false };
+  } }).criarBuscaFarmacias();
+  await assert.rejects(refused(origin, 5, new AbortController().signal), /30 segundos/);
+  await assert.rejects(refused(origin, 5, new AbortController().signal), /30 segundos/);
+  assert.equal(refusedCalls, 1, '406 também respeita a pausa do provedor');
+
+  // Abort during fallback stops the current request without starting another one.
+  let fallbackCalls = 0, onFallback;
+  const fallbackStarted = new Promise(resolve => { onFallback = resolve; });
+  const abortFallback = load('farmacias.ts', {}, { fetch: async (_url, options) => {
+    fallbackCalls++;
+    if (fallbackCalls === 1) return { status: 503, ok: false };
+    return new Promise((_, reject) => {
+      options.signal.addEventListener('abort', () => reject(new Error('cancelado')));
+      onFallback();
+    });
+  } }).criarBuscaFarmacias();
+  const external = new AbortController();
+  const fallbackRequest = abortFallback(origin, 5, external.signal);
+  await fallbackStarted;
+  external.abort();
+  await assert.rejects(fallbackRequest, /cancelado/);
+  assert.equal(fallbackCalls, 2);
+
+  // A slow request cannot overlap another, even after the throttle expires.
+  let slowCalls = 0, overallTimeout;
+  const slow = load('farmacias.ts', {}, {
+    Date: { now: () => clock },
+    setTimeout: (callback, ms) => { if (ms === 25000) overallTimeout = callback; return 1; },
+    clearTimeout: () => {},
+    fetch: async (_url, options) => {
+      slowCalls++;
+      return new Promise((_, reject) => options.signal.addEventListener('abort', () => reject(new Error('limite'))));
+    },
+  }).criarBuscaFarmacias();
+  const slowRequest = slow(origin, 5, new AbortController().signal);
+  clock += 16000;
+  await assert.rejects(slow(origin, 10, new AbortController().signal), /em andamento/);
+  overallTimeout();
+  await assert.rejects(slowRequest, /demorou demais/);
+  assert.equal(slowCalls, 1, 'Limite geral não deve iniciar fallback');
 
   let permission = { granted: false, canAskAgain: false };
   let enabled = true;

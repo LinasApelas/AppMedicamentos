@@ -54,58 +54,86 @@ export function normalizarFarmacias(dados: unknown, origem: Coordenada, raio: Ra
 
 // Each screen owns its short-lived cache. No coordinates are persisted or logged.
 export function criarBuscaFarmacias() {
-  const cache = new Map<string, { data: number; items: Farmacia[] }>();
+  const cache = new Map<string, { data: number; items: Farmacia[]; origem: string; raio: RaioFarmacias }>();
   let ultimaConsulta = -Infinity;
   let indisponivelAte = 0;
+  let emAndamento = false;
   return async (origem: Coordenada, raio: RaioFarmacias, signal: AbortSignal): Promise<Farmacia[]> => {
     if (!coordenadaValida(origem) || ![2, 5, 10].includes(raio)) throw new Error('Localização ou raio inválido.');
+    if (signal.aborted) throw new Error('Busca cancelada');
+    const posicao = `${origem.latitude},${origem.longitude}`;
     const key = `${origem.latitude},${origem.longitude},${raio}`;
     const anterior = cache.get(key);
     if (anterior && Date.now() - anterior.data < 5 * 60000) return anterior.items;
+    for (const entrada of cache.values()) {
+      if (entrada.origem === posicao && entrada.raio >= raio && Date.now() - entrada.data < 5 * 60000)
+        return entrada.items.filter(item => item.distancia <= raio * 1000);
+    }
+    if (emAndamento) throw new Error('Uma busca já está em andamento. Aguarde a conclusão.');
     if (Date.now() < indisponivelAte) throw new Error('O serviço está ocupado. Aguarde 30 segundos e tente novamente.');
     if (Date.now() - ultimaConsulta < 15000) throw new Error('Aguarde 15 segundos entre novas consultas.');
     ultimaConsulta = Date.now();
+    emAndamento = true;
     const controller = new AbortController();
     const cancelar = () => controller.abort();
     if (signal.aborted) controller.abort();
     signal.addEventListener('abort', cancelar, { once: true });
     const timeout = setTimeout(cancelar, 25000);
     try {
-      const query = `[out:json][timeout:20];(nwr["amenity"="pharmacy"](around:${raio * 1000},${origem.latitude},${origem.longitude});nwr["healthcare"="pharmacy"](around:${raio * 1000},${origem.latitude},${origem.longitude}););out center tags;`;
+      const query = `[out:json][timeout:8];(nwr["amenity"="pharmacy"](around:${raio * 1000},${origem.latitude},${origem.longitude});nwr["healthcare"="pharmacy"](around:${raio * 1000},${origem.latitude},${origem.longitude}););out center tags;`;
       const servidores = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
       let items: Farmacia[] | undefined;
       for (let tentativa = 0; tentativa < servidores.length; tentativa++) {
         if (controller.signal.aborted) throw new Error('Busca cancelada');
         let resposta: Response;
-        try { resposta = await fetch(servidores[tentativa], {
-          method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'SyncMed/1.0 (+https://github.com/LinasApelas/AppMedicamentos)' },
-          body: `data=${encodeURIComponent(query)}`, signal: controller.signal,
-          credentials: 'omit',
-        });
+        let dados: unknown;
+        const requisicao = new AbortController();
+        const cancelarRequisicao = () => requisicao.abort();
+        controller.signal.addEventListener('abort', cancelarRequisicao, { once: true });
+        const prazo = setTimeout(cancelarRequisicao, 11000);
+        try {
+          resposta = await fetch(servidores[tentativa], {
+            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'SyncMed/1.0 (+https://github.com/LinasApelas/AppMedicamentos)' },
+            body: `data=${encodeURIComponent(query)}`, signal: requisicao.signal,
+            credentials: 'omit',
+          });
+          if (resposta.ok) dados = await resposta.json();
         } catch (erro) {
-          if (erro instanceof TypeError && !controller.signal.aborted && tentativa === 0) continue;
+          if ((erro instanceof TypeError || erro instanceof SyntaxError || requisicao.signal.aborted) && !controller.signal.aborted && tentativa === 0) continue;
+          if (requisicao.signal.aborted && !controller.signal.aborted)
+            throw new Error('Os servidores de farmácias demoraram para responder. Tente novamente mais tarde.');
           throw erro;
+        } finally {
+          clearTimeout(prazo);
+          controller.signal.removeEventListener('abort', cancelarRequisicao);
         }
-        if (resposta.status >= 500 && tentativa === 0) continue;
+        if (controller.signal.aborted) throw new Error('Busca cancelada');
+        if ((resposta.status >= 500 || resposta.status === 408) && tentativa === 0) continue;
         if (resposta.status === 429 || resposta.status === 406) {
           indisponivelAte = Date.now() + 30000;
           throw new Error('O serviço está ocupado. Aguarde 30 segundos e tente novamente.');
         }
         if (!resposta.ok) throw new Error('O serviço de farmácias está indisponível no momento. O mapa pode continuar disponível. Tente um raio menor ou tente novamente mais tarde.');
-        items = normalizarFarmacias(await resposta.json(), origem, raio);
+        try { items = normalizarFarmacias(dados, origem, raio); }
+        catch (erro) {
+          if (tentativa === 0) continue;
+          throw erro;
+        }
         break;
       }
       if (!items) throw new Error('Não foi possível consultar as farmácias. Tente novamente mais tarde.');
       if (cache.size >= 6) cache.clear();
-      cache.set(key, { data: Date.now(), items });
+      cache.set(key, { data: Date.now(), items, origem: posicao, raio });
       return items;
     } catch (erro) {
       if (signal.aborted) throw erro;
       if (controller.signal.aborted) throw new Error('A busca demorou demais. Verifique sua conexão e tente novamente.');
       if (erro instanceof TypeError) throw new Error('Não foi possível conectar. Verifique sua internet e tente novamente.');
+      if (erro instanceof SyntaxError) throw new Error('O serviço de farmácias enviou uma resposta inválida. Tente novamente mais tarde.');
       throw erro;
     } finally {
+      emAndamento = false;
       clearTimeout(timeout);
       signal.removeEventListener('abort', cancelar);
     }

@@ -41,7 +41,7 @@ export default function Farmacias() {
       setOrigem(posicao);
       const farmacias = await consulta.current(posicao, novoRaio, controller.signal);
       if (controller.signal.aborted) return;
-      setItems([...farmacias].sort((a, b) => a.distancia - b.distancia).slice(0, 5)); setConsultado(true);
+      setItems([...farmacias].sort((a, b) => a.distancia - b.distancia)); setConsultado(true);
     } catch (e) {
       if (!controller.signal.aborted) {
         setErro(e instanceof Error ? e.message : 'Não foi possível buscar farmácias. Tente novamente.');
@@ -106,11 +106,16 @@ export default function Farmacias() {
         {!!erro && <View style={styles.feedback}>
           <Text accessibilityLiveRegion="polite" style={styles.error}>{erro}</Text>
           <Button titulo="Tentar novamente" icon="refresh-cw" disabled={carregando} onPress={() => void buscar()} />
+          {origem && <Button titulo="Buscar farmácias no Google Maps" icon="map-pin" onPress={() => {
+            const query = encodeURIComponent(`farmácias perto de ${origem.latitude},${origem.longitude}`);
+            void Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`)
+              .catch(() => Alert.alert('Mapa', 'Não foi possível abrir o Google Maps. Verifique sua conexão.'));
+          }} />}
           {configuracoes && Platform.OS !== 'web' && <Button titulo="Abrir configurações" icon="settings" onPress={() => void configuracao()} />}
           {configuracoes && Platform.OS === 'web' && <Text style={styles.text}>Habilite a localização nas permissões deste site no navegador.</Text>}
         </View>}
         {consultado && items.length > 0 && <Text accessibilityLiveRegion="polite" style={styles.label}>
-          {items.length === 1 ? 'Farmácia mais próxima' : `${items.length} farmácias mais próximas`}
+          {items.length === 1 ? `1 farmácia em até ${raio} km` : `${items.length} farmácias em até ${raio} km`}
         </Text>}
       </View>}
       ListEmptyComponent={consultado && !carregando && !erro ? <Text style={styles.text}>Nenhuma farmácia mapeada neste raio. Tente ampliar a busca.</Text> : undefined}
