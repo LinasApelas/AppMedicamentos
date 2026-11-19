@@ -6,6 +6,7 @@ import { cancelarTodosAlarmes } from '../services/alarmes';
 interface AuthState {
   user: UsuarioAutenticado | null;
   restoring: boolean;
+  sessionVersion: number;
   error: string | null;
   login: (email: string, senha: string) => Promise<UsuarioAutenticado>;
   logout: () => Promise<void>;
@@ -16,7 +17,8 @@ const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: React.PropsWithChildren) {
   const [user, setUser] = useState(apiService.currentUser);
-  const [restoring, setRestoring] = useState(true);
+  const restoring = false;
+  const [sessionVersion, setSessionVersion] = useState(apiService.getSessionVersion());
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -29,25 +31,18 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
 
   useEffect(() => {
     let active = true;
+    let previousVersion = apiService.getSessionVersion();
     const unsubscribe = apiService.subscribe(() => {
       if (!active) return;
-      setUser(apiService.currentUser);
-      if (!apiService.currentUser) {
+      if (previousVersion !== apiService.getSessionVersion()) {
+        previousVersion = apiService.getSessionVersion();
         void cancelarTodosAlarmes().catch(() => setError('Não foi possível cancelar os alarmes locais. Tente novamente.'));
       }
+      setUser(apiService.currentUser);
+      setSessionVersion(apiService.getSessionVersion());
     });
-    void (async () => {
-      try {
-        await cancelarTodosAlarmes();
-        if (active) await refresh();
-      } catch {
-        if (active) setError('Não foi possível preparar a sessão. Tente novamente.');
-      } finally {
-        if (active) setRestoring(false);
-      }
-    })();
     const subscription = AppState.addEventListener('change', state => {
-      if (state === 'active') void refresh();
+      if (state === 'active' && apiService.currentUser) void refresh();
     });
     return () => { active = false; unsubscribe(); subscription.remove(); };
   }, [refresh]);
@@ -60,11 +55,10 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
 
   const logout = useCallback(async () => {
     setError(null);
-    try { await apiService.logout(); }
-    finally { await cancelarTodosAlarmes(); }
+    await apiService.logout();
   }, []);
 
-  return <AuthContext.Provider value={{ user, restoring, error, login, logout, refresh }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, restoring, sessionVersion, error, login, logout, refresh }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

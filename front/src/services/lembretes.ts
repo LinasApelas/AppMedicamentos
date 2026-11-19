@@ -24,6 +24,7 @@ export async function inicializarBanco(db: SQLiteDatabase) {
 
 export async function enviarLembrete(db: SQLiteDatabase, item: Remedio, sessao: SessaoLocal = capturarSessaoLocal()) {
   validarSessaoLocal(sessao);
+  if (sessao.usuarioId === 0) return;
   const payload = { nivelAviso: item.nivelAviso || 'NOTIFICACAO', dosagem: item.dosagem || '', nome: item.nome, unidadeMedida: 'porção', descricao: `Intervalo: ${item.intervalo}h, Frequência: ${item.frequencia} dias` };
   let serverId = item.serverId;
   if (serverId) {
@@ -41,6 +42,7 @@ export async function enviarLembrete(db: SQLiteDatabase, item: Remedio, sessao: 
 
 export async function sincronizarLembretes(db: SQLiteDatabase, sessao: SessaoLocal = capturarSessaoLocal()) {
   validarSessaoLocal(sessao);
+  if (sessao.usuarioId === 0) return;
   const pending = await db.getAllAsync<Remedio>('SELECT * FROM lembretes WHERE pendente = 1');
   validarSessaoLocal(sessao);
   for (const item of pending) await enviarLembrete(db, item, sessao);

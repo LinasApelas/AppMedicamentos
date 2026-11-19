@@ -12,6 +12,7 @@ let sincronizacao: Promise<void> = Promise.resolve();
 export function sincronizarConfirmacoes(db: SQLiteDatabase, sessao: SessaoLocal): Promise<void> {
   const resultado = sincronizacao.catch(() => undefined).then(async () => {
     validarSessaoLocal(sessao);
+    if (sessao.usuarioId === 0) return;
     const pendentes = await db.getAllAsync<Ocorrencia & { serverId: number }>(`SELECT o.*, l.serverId FROM ocorrencias o
       JOIN lembretes l ON l.id = o.lembreteId WHERE o.estado = 'TOMADO' AND o.sincronizada = 0 AND l.serverId IS NOT NULL`);
     for (const o of pendentes) {

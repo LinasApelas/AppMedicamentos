@@ -51,7 +51,7 @@ export default function Lembretes() {
     { text: 'Excluir', style: 'destructive', onPress: async () => {
       try {
         validarSessaoLocal(sessao);
-        if (item.serverId) await apiService.deletarMedicamento(item.serverId);
+        if (sessao.usuarioId !== 0 && item.serverId) await apiService.deletarMedicamento(item.serverId);
         validarSessaoLocal(sessao);
         await cancelarAlarmes(item.id, sessao);
         validarSessaoLocal(sessao);
@@ -67,6 +67,7 @@ export default function Lembretes() {
 
   return <ScrollView style={styles.screen} contentContainerStyle={styles.container}
     refreshControl={<RefreshControl refreshing={loading} onRefresh={carregar} />}>
+    {sessao.usuarioId === 0 && <Text style={styles.notice}>Modo sem conta: seus dados ficam neste aparelho. Entrar em uma conta abre uma agenda separada.</Text>}
     <View style={styles.welcome}><Text style={styles.title}>Sua rotina de cuidados</Text><Text style={styles.text}>Selecione um dia para ver os horários programados.</Text></View>
     <Calendario selectedDate={selectedDate} onDateSelected={date => { setSelectedDate(date); setMostrarTodos(false); }}
       hasSchedule={date => remedios.some(item => horariosDoDia(item, date).length > 0)} />
@@ -90,11 +91,11 @@ export default function Lembretes() {
       <Text style={styles.text}>{item.intervalo ? `A cada ${item.intervalo}h · ${item.frequencia || '?'} dias` : 'Edite para completar a programação'}</Text>
       <View style={styles.times}>{doses.map(date => <Text key={date.getTime()} style={styles.time}>{horario(date)}</Text>)}</View>
       {!doses.length && <Text style={styles.notice}>Sem dose prevista para o dia selecionado.</Text>}
-      {!!item.pendente && <Text style={styles.notice}>Sincronização pendente</Text>}
+      {sessao.usuarioId !== 0 && !!item.pendente && <Text style={styles.notice}>Sincronização pendente</Text>}
     </View>)}
     <Button titulo="Adicionar medicamento" icon="plus" onPress={() => router.push({ pathname: '/Adicionar', params: { id: '' } })} />
     <Text style={styles.section}>Confirmações recentes neste aparelho</Text>
-    {confirmacoes.map(c => <Text key={c.chave} style={styles.text}>{c.nome} · {c.realizada.replace('T', ' ')} · {c.sincronizada ? 'Sincronizado' : 'Salvo no aparelho, sincronização pendente'}</Text>)}
+    {confirmacoes.map(c => <Text key={c.chave} style={styles.text}>{c.nome} · {c.realizada.replace('T', ' ')} · {sessao.usuarioId === 0 ? 'Salvo neste aparelho' : c.sincronizada ? 'Sincronizado' : 'Salvo no aparelho, sincronização pendente'}</Text>)}
     <Text style={styles.footnote}>Os horários seguem o fuso do aparelho. A fila dos próximos alarmes é renovada ao abrir esta agenda; mantenha as notificações permitidas.</Text>
   </ScrollView>;
 }

@@ -1,9 +1,11 @@
 import { useCallback, useRef, useState, type ComponentRef } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useAuth } from '../contexts/AuthContext';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useFocusEffect } from 'expo-router';
 
 export default function MenuConta() {
+  const { user } = useAuth();
   const anchor = useRef<ComponentRef<typeof View>>(null);
   const [visible, setVisible] = useState(false);
   const [top, setTop] = useState(80);
@@ -25,9 +27,9 @@ export default function MenuConta() {
       <View style={styles.overlay}>
         <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Fechar menu" onPress={close} />
         <View accessibilityViewIsModal style={[styles.menu, { top: Math.min(top, Math.max(16, height - 180)), width: Math.min(240, width - 32) }]}>
-          <Text style={styles.heading}>Minha conta</Text>
-          <Pressable accessibilityRole="button" style={styles.item} onPress={() => { close(); router.push('/Perfil'); }}>
-            <MaterialIcons name="person-outline" size={24} color="#12323A" /><Text style={styles.label}>Meu perfil</Text>
+          <Text style={styles.heading}>{user ? 'Minha conta' : 'Neste aparelho'}</Text>
+          <Pressable accessibilityRole="button" style={styles.item} onPress={() => { close(); router.push(user ? '/Perfil' : '/login'); }}>
+            <MaterialIcons name="person-outline" size={24} color="#12323A" /><Text style={styles.label}>{user ? 'Meu perfil' : 'Entrar ou criar conta'}</Text>
           </Pressable>
           <Pressable accessibilityRole="button" style={styles.item} onPress={() => { close(); router.push({ pathname: '/termos', params: { consulta: '1' } }); }}>
             <MaterialIcons name="description" size={24} color="#12323A" /><Text style={styles.label}>Termos de uso</Text>

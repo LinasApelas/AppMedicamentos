@@ -28,6 +28,7 @@ function load(file, imports, globals = {}) {
   let putStatus = 404;
   const calls = [];
   const mockApi = { ...api, apiService: {
+    currentUser: { id: 1 },
     requireUserId: () => 1,
     getSessionVersion: () => 1,
     isSessionCurrent: version => version === 1,

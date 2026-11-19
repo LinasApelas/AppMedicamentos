@@ -7,15 +7,16 @@ export interface SessaoLocal {
 }
 
 export function capturarSessaoLocal(): SessaoLocal {
-  return { usuarioId: apiService.requireUserId(), versao: apiService.getSessionVersion() };
+  return { usuarioId: apiService.currentUser?.id ?? 0, versao: apiService.getSessionVersion() };
 }
 
 export function sessaoLocalAtual(sessao: SessaoLocal): boolean {
-  return apiService.isSessionCurrent(sessao.versao);
+  return sessao.versao === apiService.getSessionVersion() &&
+    sessao.usuarioId === (apiService.currentUser?.id ?? 0);
 }
 
 export function validarSessaoLocal(sessao: SessaoLocal): void {
-  if (!sessaoLocalAtual(sessao) || apiService.requireUserId() !== sessao.usuarioId) {
+  if (!sessaoLocalAtual(sessao)) {
     throw new Error('A sessão mudou. Abra novamente os lembretes.');
   }
 }

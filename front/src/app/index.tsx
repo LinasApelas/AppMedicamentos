@@ -10,7 +10,7 @@ export default function App() {
   const router = useRouter();
   const { user } = useAuth();
   const { boasVindas } = useLocalSearchParams<{ boasVindas?: string }>();
-  if (boasVindas !== '1') return <Redirect href={user ? '/(tabs)/Lembretes' : '/login'} />;
+  if (user && boasVindas !== '1') return <Redirect href="/(tabs)/Lembretes" />;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -41,12 +41,13 @@ export default function App() {
         <Text style={styles.textoGrande}>Seu cuidado,
           no tempo certo.</Text>
 
-        <Text style={styles.subtitle}>Bem-vindo ao SyncMed. Seus medicamentos e lembretes em um só lugar.</Text>
+        <Text style={styles.subtitle}>Você pode usar o SyncMed sem criar uma conta. Seus medicamentos e lembretes ficam salvos neste aparelho e não são sincronizados automaticamente.</Text>
+        <Text style={styles.subtitle}>Trocar de aparelho ou desinstalar o aplicativo pode apagar esses dados. Entrar em uma conta abre uma agenda separada, sem transferir os dados de visitante.</Text>
         {/* Botao para Termos */}
         <View style={styles.botao}>
         <Button
-          titulo="Começar"
-          onPress={() => router.push('/termos')}
+          titulo="Continuar sem conta"
+          onPress={() => router.replace('/(tabs)/Lembretes')}
         />
         </View>
 
@@ -55,7 +56,7 @@ export default function App() {
           style={styles.linkContainer}
           onPress={() => router.push('/login')}
         >
-          <MaterialIcons name="exit-to-app" size={24} color="#00C2FF" />
+          <MaterialIcons name="exit-to-app" size={24} color="#14566B" />
           <Text style={styles.Login}>Entrar</Text>
         </TouchableOpacity>
 
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
   },
   Login: {
     fontSize: 16,
-    color: '#00C2FF',
+    color: '#14566B',
     fontWeight: '600',
     marginLeft: 8,
   },

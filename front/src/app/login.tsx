@@ -85,6 +85,7 @@ export default function Login() {
 
             <Button titulo={loading ? "Entrando..." : "Entrar"} loading={loading} onPress={handleLogin} />
 
+            <Button titulo="Continuar sem conta" disabled={loading} onPress={() => router.replace('/(tabs)/Lembretes')} />
             <View style={styles.registerContainer}>
               <Text style={styles.TextoCriaConta}>Ainda não tem conta? </Text>
               <TouchableOpacity onPress={() => router.push('/CriarConta')}>

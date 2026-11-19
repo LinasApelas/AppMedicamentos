@@ -32,6 +32,7 @@ function localDb() {
   const requests = [];
   class ApiError extends Error { constructor(status) { super('Erro simulado'); this.status = status; } }
   const api = { ApiError, apiService: {
+    get currentUser() { return usuarioId ? { id: usuarioId } : null; },
     requireUserId: () => { if (!usuarioId) throw new Error('Sem sessão'); return usuarioId; },
     getSessionVersion: () => versao,
     isSessionCurrent: v => v === versao && usuarioId !== null,
@@ -116,7 +117,7 @@ function localDb() {
     await assert.rejects(atualizacao, /sessão mudou/);
     await limpeza;
     assert.equal(alarmesAgendados.length, 0);
-    assert.throws(() => session.capturarSessaoLocal(), /Sem sessão/);
+    assert.equal(session.capturarSessaoLocal().usuarioId, 0);
     console.log('OK: SQLite A/B isolado, legado preservado, tarefas antigas bloqueadas e alarmes limpos no logout.');
   } finally {
     bancoA.close(); bancoB.close(); legado.close();

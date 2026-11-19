@@ -8,7 +8,7 @@ import { AuthProvider, useAuth } from '../contexts/AuthContext';
 Notifications.setNotificationHandler({
   handleNotification: async notification => {
     const data = notification.request.content.data;
-    const autorizado = data?.syncmed !== true || data?.usuarioId === apiService.currentUser?.id;
+    const autorizado = data?.syncmed !== true || data?.usuarioId === (apiService.currentUser?.id ?? 0);
     return { shouldShowBanner: autorizado, shouldShowList: autorizado, shouldPlaySound: autorizado && !(data?.nivelAviso === 'ALARME' && AppState.currentState === 'active' && telaAlarmeDisponivel()), shouldSetBadge: false };
   },
 });
@@ -21,8 +21,8 @@ function SessionRoutes() {
   const { user, restoring } = useAuth();
   if (restoring) return <View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator size="large" /></View>;
   return <Stack screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="(tabs)" />
     <Stack.Protected guard={!!user}>
-      <Stack.Screen name="(tabs)" />
       <Stack.Screen name="Perfil" options={{ headerShown: true, title: 'Meu perfil', headerBackTitle: 'Voltar', headerBackButtonDisplayMode: 'default', headerTintColor: '#12323A', headerShadowVisible: false, headerStyle: { backgroundColor: '#ffffff' } }} />
     </Stack.Protected>
     <Stack.Protected guard={!user}>
