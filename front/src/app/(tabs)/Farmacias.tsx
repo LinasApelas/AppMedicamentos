@@ -6,9 +6,11 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Button from '../../components/Button';
 import MapaFarmacias from '../../components/farmacias/MapaFarmacias';
 import ItemFarmacia from '../../components/farmacias/ItemFarmacia';
-import { criarBuscaFarmacias, type Coordenada, type Farmacia, type RaioFarmacias } from '../../services/farmacias';
+import { type Coordenada, type Farmacia, type RaioFarmacias } from '../../services/farmacias';
 import { ErroLocalizacao, obterLocalizacao } from '../../services/localizacao';
 import { abrirRota } from '../../services/rotasFarmacias';
+
+import { consultarFarmacias } from '../../services/consultaFarmacias';
 
 export default function Farmacias() {
   const insets = useSafeAreaInsets();
@@ -21,7 +23,7 @@ export default function Farmacias() {
   const [consultado, setConsultado] = useState(false);
   const [erro, setErro] = useState('');
   const [configuracoes, setConfiguracoes] = useState(false);
-  const consulta = useRef(criarBuscaFarmacias());
+  const [avisoCache, setAvisoCache] = useState('');
   const ativa = useRef<AbortController | null>(null);
   const origemAtual = useRef<Coordenada | null>(null);
   const raioAtual = useRef<RaioFarmacias>(5);
@@ -30,7 +32,7 @@ export default function Farmacias() {
     if (ativa.current) return;
     const controller = new AbortController();
     ativa.current = controller;
-    setCarregando(true); setErro(''); setConfiguracoes(false); setConsultado(false);
+    setCarregando(true); setErro(''); setAvisoCache(''); setConfiguracoes(false); setConsultado(false);
     setItems([]); setSelecionada(null); setRaio(novoRaio);
     raioAtual.current = novoRaio;
     if (atualizarPosicao) { origemAtual.current = null; setOrigem(null); }
@@ -39,9 +41,10 @@ export default function Farmacias() {
       if (controller.signal.aborted) return;
       origemAtual.current = posicao;
       setOrigem(posicao);
-      const farmacias = await consulta.current(posicao, novoRaio, controller.signal);
+      const resultado = await consultarFarmacias(posicao, novoRaio, controller.signal);
       if (controller.signal.aborted) return;
-      setItems([...farmacias].sort((a, b) => a.distancia - b.distancia)); setConsultado(true);
+      setItems(resultado.items); setConsultado(true);
+      if (resultado.cache) setAvisoCache(`Dados salvos em ${new Date(resultado.data).toLocaleString()}. ${resultado.desatualizado ? 'Podem estar desatualizados. ' + resultado.aviso : 'Cache local válido por 5 minutos; os cadastros podem mudar.'}`);
     } catch (e) {
       if (!controller.signal.aborted) {
         setErro(e instanceof Error ? e.message : 'Não foi possível buscar farmácias. Tente novamente.');
@@ -57,7 +60,6 @@ export default function Farmacias() {
     return () => {
       ativa.current?.abort();
       ativa.current = null;
-      consulta.current = criarBuscaFarmacias();
       origemAtual.current = null;
       setOrigem(null); setItems([]); setSelecionada(null); setConsultado(false); setCarregando(false);
     };
@@ -87,10 +89,15 @@ export default function Farmacias() {
           .catch(() => Alert.alert('OpenStreetMap', 'Consulte https://www.openstreetmap.org/copyright'))} style={styles.credit}>
           <Text style={styles.link}>© OpenStreetMap contributors · ODbL</Text>
         </Pressable>}
+        {origem && <Pressable accessibilityRole="link" style={styles.credit}
+          onPress={() => void Linking.openURL('https://www.geoapify.com/').catch(() => Alert.alert('Geoapify', 'Consulte www.geoapify.com para informações sobre a fonte.'))}>
+          <Text style={styles.link}>Powered by Geoapify</Text>
+        </Pressable>}
+        {items.length > 0 && <Text style={styles.text}>Fonte: {items[0].id.startsWith('geoapify:') ? 'Geoapify · OpenStreetMap' : 'Overpass · OpenStreetMap'}</Text>}
         <View style={styles.searchHeading}>
           <Text style={styles.hint}>Farmácias perto de você</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Sobre a busca e sua localização" style={styles.info}
-            onPress={() => Alert.alert('Sobre a busca', 'Ao abrir esta aba ou atualizar a busca, usamos sua localização para consultar farmácias no OpenStreetMap/Overpass (servidor principal e Private.coffee como alternativa em caso de falha). Não salvamos sua posição nem acompanhamos seus deslocamentos.\n\nAs distâncias são em linha reta. Os cadastros podem estar incompletos ou desatualizados.')}>
+            onPress={() => Alert.alert('Sobre a busca · Geoapify 21/11', 'Consultamos farmácias reais pela Geoapify, usando dados OpenStreetMap. Em falhas de disponibilidade, consultamos Overpass (Private.coffee e overpass-api.de). Resultados e região consultada ficam em um cache local separado dos medicamentos. Reutilizamos respostas por 5 minutos; em falhas, podemos mostrar dados de até 24 horas com aviso. Não registramos sua localização em logs.\n\nAs distâncias são em linha reta. Os cadastros podem estar incompletos ou desatualizados.')}>
             <MaterialIcons name="info-outline" size={22} color="#52656b" />
           </Pressable>
         </View>
@@ -106,20 +113,17 @@ export default function Farmacias() {
         {!!erro && <View style={styles.feedback}>
           <Text accessibilityLiveRegion="polite" style={styles.error}>{erro}</Text>
           <Button titulo="Tentar novamente" icon="refresh-cw" disabled={carregando} onPress={() => void buscar()} />
-          {origem && <Button titulo="Buscar farmácias no Google Maps" icon="map-pin" onPress={() => {
-            const query = encodeURIComponent(`farmácias perto de ${origem.latitude},${origem.longitude}`);
-            void Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`)
-              .catch(() => Alert.alert('Mapa', 'Não foi possível abrir o Google Maps. Verifique sua conexão.'));
-          }} />}
           {configuracoes && Platform.OS !== 'web' && <Button titulo="Abrir configurações" icon="settings" onPress={() => void configuracao()} />}
           {configuracoes && Platform.OS === 'web' && <Text style={styles.text}>Habilite a localização nas permissões deste site no navegador.</Text>}
         </View>}
+        {!!avisoCache && <Text accessibilityLiveRegion="polite" style={styles.text}>{avisoCache}</Text>}
         {consultado && items.length > 0 && <Text accessibilityLiveRegion="polite" style={styles.label}>
           {items.length === 1 ? `1 farmácia em até ${raio} km` : `${items.length} farmácias em até ${raio} km`}
         </Text>}
       </View>}
       ListEmptyComponent={consultado && !carregando && !erro ? <Text style={styles.text}>Nenhuma farmácia mapeada neste raio. Tente ampliar a busca.</Text> : undefined}
       renderItem={({ item, index }) => <ItemFarmacia item={item} posicao={index + 1} selecionada={selecionada === item.id}
+        onSelecionar={() => { setSelecionada(item.id); lista.current?.scrollToOffset({ offset: 0, animated: true }); }}
         onRota={() => { setSelecionada(item.id); void rota(item); }} />} />
   </View>;
 }

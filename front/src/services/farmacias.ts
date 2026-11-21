@@ -58,6 +58,9 @@ export function criarBuscaFarmacias() {
   let ultimaConsulta = -Infinity;
   let indisponivelAte = 0;
   let emAndamento = false;
+  // Independent operators; do not treat kumi.systems as another provider:
+  // it is an alias of Private.coffee. Prefer the last successful endpoint.
+  let servidores = ['https://overpass.private.coffee/api/interpreter', 'https://overpass-api.de/api/interpreter'];
   return async (origem: Coordenada, raio: RaioFarmacias, signal: AbortSignal): Promise<Farmacia[]> => {
     if (!coordenadaValida(origem) || ![2, 5, 10].includes(raio)) throw new Error('Localização ou raio inválido.');
     if (signal.aborted) throw new Error('Busca cancelada');
@@ -70,7 +73,7 @@ export function criarBuscaFarmacias() {
         return entrada.items.filter(item => item.distancia <= raio * 1000);
     }
     if (emAndamento) throw new Error('Uma busca já está em andamento. Aguarde a conclusão.');
-    if (Date.now() < indisponivelAte) throw new Error('O serviço está ocupado. Aguarde 30 segundos e tente novamente.');
+    if (Date.now() < indisponivelAte) throw new Error(`O serviço está ocupado. Aguarde ${Math.ceil((indisponivelAte - Date.now()) / 1000)} segundos e tente novamente.`);
     if (Date.now() - ultimaConsulta < 15000) throw new Error('Aguarde 15 segundos entre novas consultas.');
     ultimaConsulta = Date.now();
     emAndamento = true;
@@ -81,7 +84,6 @@ export function criarBuscaFarmacias() {
     const timeout = setTimeout(cancelar, 25000);
     try {
       const query = `[out:json][timeout:8];(nwr["amenity"="pharmacy"](around:${raio * 1000},${origem.latitude},${origem.longitude});nwr["healthcare"="pharmacy"](around:${raio * 1000},${origem.latitude},${origem.longitude}););out center tags;`;
-      const servidores = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
       let items: Farmacia[] | undefined;
       for (let tentativa = 0; tentativa < servidores.length; tentativa++) {
         if (controller.signal.aborted) throw new Error('Busca cancelada');
@@ -111,8 +113,11 @@ export function criarBuscaFarmacias() {
         if (controller.signal.aborted) throw new Error('Busca cancelada');
         if ((resposta.status >= 500 || resposta.status === 408) && tentativa === 0) continue;
         if (resposta.status === 429 || resposta.status === 406) {
-          indisponivelAte = Date.now() + 30000;
-          throw new Error('O serviço está ocupado. Aguarde 30 segundos e tente novamente.');
+          const retry = resposta.headers?.get('Retry-After');
+          const delay = retry ? (/^\d+$/.test(retry) ? Number(retry) * 1000 : Date.parse(retry) - Date.now()) : 30000;
+          const espera = Number.isFinite(delay) ? Math.max(30000, delay) : 30000;
+          indisponivelAte = Date.now() + espera;
+          throw new Error(`Limite de consultas atingido. O serviço está ocupado. Aguarde ${Math.ceil(espera / 1000)} segundos e tente novamente.`);
         }
         if (!resposta.ok) throw new Error('O serviço de farmácias está indisponível no momento. O mapa pode continuar disponível. Tente um raio menor ou tente novamente mais tarde.');
         try { items = normalizarFarmacias(dados, origem, raio); }
@@ -120,6 +125,7 @@ export function criarBuscaFarmacias() {
           if (tentativa === 0) continue;
           throw erro;
         }
+        servidores = [servidores[tentativa], ...servidores.filter((_, index) => index !== tentativa)];
         break;
       }
       if (!items) throw new Error('Não foi possível consultar as farmácias. Tente novamente mais tarde.');
@@ -128,8 +134,9 @@ export function criarBuscaFarmacias() {
       return items;
     } catch (erro) {
       if (signal.aborted) throw erro;
-      if (controller.signal.aborted) throw new Error('A busca demorou demais. Verifique sua conexão e tente novamente.');
-      if (erro instanceof TypeError) throw new Error('Não foi possível conectar. Verifique sua internet e tente novamente.');
+      indisponivelAte = Math.max(indisponivelAte, Date.now() + 30000);
+      if (controller.signal.aborted) throw new Error('A busca demorou demais. Os servidores podem estar sobrecarregados. Tente novamente mais tarde.');
+      if (erro instanceof TypeError) throw new Error('Falha de conexão com os serviços de farmácias. Verifique sua internet. Isso não significa que não há farmácias no local.');
       if (erro instanceof SyntaxError) throw new Error('O serviço de farmácias enviou uma resposta inválida. Tente novamente mais tarde.');
       throw erro;
     } finally {

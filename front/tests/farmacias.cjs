@@ -42,6 +42,7 @@ function load(file, imports = {}, globals = {}) {
   assert.equal(rows.length, 2);
   assert.equal(rows[0].id, 'way/2');
   assert.equal(rows[1].endereco, 'Rua Teste, 10');
+  assert.equal(f.normalizarFarmacias({ elements: [...fixture.elements, fixture.elements[0]] }, origin, 5).length, 2);
   assert.equal(f.normalizarFarmacias(fixture, origin, 10).length, 3);
   assert.equal(f.normalizarFarmacias({ elements: [] }, origin, 5).length, 0);
   assert.throws(() => f.normalizarFarmacias({ elements: [], remark: 'timeout' }, origin, 5), /não concluiu/);
@@ -69,12 +70,13 @@ function load(file, imports = {}, globals = {}) {
   const servidores = [];
   const fallbackService = load('farmacias.ts', {}, { fetch: async url => {
     servidores.push(url);
-    return url.includes('overpass-api.de') ? { status: 503, ok: false } : { status: 200, ok: true, json: async () => fixture };
+    return url.includes('private.coffee') ? { status: 502, ok: false } : { status: 200, ok: true, json: async () => fixture };
   } });
   assert.equal((await fallbackService.criarBuscaFarmacias()(origin, 5, new AbortController().signal)).length, 2);
   assert.equal(servidores.length, 2);
-  assert.ok(servidores[1].includes('private.coffee'));
-  for (const falha of ['503', '408', 'timeout', 'partial', 'json']) {
+  assert.ok(servidores[0].includes('private.coffee'));
+  assert.ok(servidores[1].includes('overpass-api.de'));
+  for (const falha of ['502', '503', '504', '408', 'timeout', 'partial', 'json']) {
     let tentativas = 0;
     const recuperacao = load('farmacias.ts', {}, {
       SyntaxError,
@@ -82,7 +84,7 @@ function load(file, imports = {}, globals = {}) {
       fetch: async (_url, options) => {
         tentativas++;
         if (tentativas === 1) {
-          if (falha === '503' || falha === '408') return { status: Number(falha), ok: false };
+          if (['502', '503', '504', '408'].includes(falha)) return { status: Number(falha), ok: false };
           if (falha === 'partial') return { status: 200, ok: true, json: async () => ({ elements: [], remark: 'timeout' }) };
           if (falha === 'json') return { status: 200, ok: true, json: async () => { throw new SyntaxError('HTML'); } };
           return new Promise((_, reject) => options.signal.addEventListener('abort', () => reject(new Error('timeout'))));
@@ -142,6 +144,41 @@ function load(file, imports = {}, globals = {}) {
   await assert.rejects(slowRequest, /demorou demais/);
   assert.equal(slowCalls, 1, 'Limite geral não deve iniciar fallback');
 
+  const preferredCalls = [];
+  const preferred = load('farmacias.ts', {}, { Date: { now: () => clock }, fetch: async url => {
+    preferredCalls.push(url);
+    return url.includes('private.coffee') ? { status: 502, ok: false }
+      : { status: 200, ok: true, json: async () => fixture };
+  } }).criarBuscaFarmacias();
+  await preferred(origin, 2, new AbortController().signal);
+  clock += 16000;
+  await preferred(origin, 5, new AbortController().signal);
+  assert.equal(preferredCalls.length, 3);
+  assert.equal(preferredCalls[2], preferredCalls[1], 'Reutiliza o servidor que respondeu');
+
+  let failures = 0;
+  const unavailable = load('farmacias.ts', {}, { Date: { now: () => clock }, fetch: async () => {
+    failures++; return { status: failures === 1 ? 502 : 504, ok: false };
+  } }).criarBuscaFarmacias();
+  await assert.rejects(unavailable(origin, 2, new AbortController().signal), /indisponível/);
+  clock += 16000;
+  await assert.rejects(unavailable(origin, 2, new AbortController().signal), /14 segundos/);
+  assert.equal(failures, 2, 'Falha de todos os serviços não vira resultado vazio e tem pausa');
+  const empty = load('farmacias.ts', {}, { fetch: async () => ({
+    status: 200, ok: true, json: async () => ({ elements: [] }),
+  }) }).criarBuscaFarmacias();
+  assert.equal((await empty(origin, 2, new AbortController().signal)).length, 0);
+
+  let limitedCalls = 0;
+  const retryAfter = load('farmacias.ts', {}, { Date: { now: () => clock }, fetch: async () => {
+    limitedCalls++;
+    return { status: 429, ok: false, headers: { get: () => '120' } };
+  } }).criarBuscaFarmacias();
+  await assert.rejects(retryAfter(origin, 2, new AbortController().signal), /120 segundos/);
+  clock += 31000;
+  await assert.rejects(retryAfter(origin, 2, new AbortController().signal), /89 segundos/);
+  assert.equal(limitedCalls, 1, 'Retry-After maior que 30 segundos deve ser respeitado');
+
   let permission = { granted: false, canAskAgain: false };
   let enabled = true;
   let asked = 0;
@@ -175,6 +212,7 @@ function load(file, imports = {}, globals = {}) {
     } });
     await route.abrirRota({ latitude: -3, longitude: -38 });
     assert.equal(opened, platform === 'ios' ? 'comgooglemaps://?daddr=-3,-38' : 'https://www.google.com/maps/dir/?api=1&destination=-3,-38');
+
   }
   const attempts = [];
   const fallback = load('rotasFarmacias.ts', { './farmacias': f, 'react-native': {

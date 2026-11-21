@@ -2,18 +2,24 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { formatarDistancia, type Farmacia } from '../../services/farmacias';
 
-export default function ItemFarmacia({ item, posicao, selecionada, onRota }: {
-  item: Farmacia; posicao: number; selecionada: boolean; onRota: () => void;
+export default function ItemFarmacia({ item, posicao, selecionada, onSelecionar, onRota }: {
+  item: Farmacia; posicao: number; selecionada: boolean; onSelecionar: () => void; onRota: () => void;
 }) {
-  return <Pressable onPress={onRota} accessibilityRole="link"
-      accessibilityLabel={`${posicao}. ${item.nome}, ${formatarDistancia(item.distancia)}. Abrir no Google Maps`}
+  return <View>
+    <Pressable onPress={onSelecionar} accessibilityRole="button" accessibilityState={{ selected: selecionada }}
+      accessibilityLabel={`${posicao}. ${item.nome}, ${formatarDistancia(item.distancia)}. Selecionar no mapa`}
       style={({ pressed }) => [styles.card, selecionada && styles.selected, pressed && styles.pressed]}>
       <View style={styles.rank}><Text style={styles.rankText}>{posicao}</Text></View>
       <View style={{ flex: 1, gap: 6 }}><Text style={styles.name}>{item.nome}</Text>
         <Text numberOfLines={2} style={styles.text}>{item.endereco}</Text>
         <Text style={styles.text}>{formatarDistancia(item.distancia)} em linha reta</Text></View>
-      <MaterialIcons name="open-in-new" size={22} color="#175B8E" />
-  </Pressable>;
+      <MaterialIcons name="place" size={22} color="#175B8E" />
+    </Pressable>
+    {selecionada && <Pressable onPress={onRota} accessibilityRole="link"
+      style={{ minHeight: 44, justifyContent: 'center', marginBottom: 12 }}>
+      <Text style={styles.text}>Como chegar · abrir rota externa</Text>
+    </Pressable>}
+  </View>;
 }
 const styles = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#DEF2F5', borderRadius: 20, padding: 16, gap: 12, marginBottom: 12, borderWidth: 2, borderColor: 'transparent' },
