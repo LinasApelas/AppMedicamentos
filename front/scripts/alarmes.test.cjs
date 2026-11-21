@@ -5,7 +5,7 @@ const ts = require('typescript');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-function ambiente() {
+function ambiente(platform = 'android', ownership = 'expo') {
   const sqlite = new DatabaseSync(':memory:');
   const db = {
     execAsync: async sql => sqlite.exec(sql),
@@ -15,11 +15,14 @@ function ambiente() {
   };
   const scheduled = new Map(); let permitted = true, user = 1, chamadas = 0, offline = false;
   const session = { usuarioId: 1, versao: 1 };
+  const channels = new Map();
+  let exact = true;
   const notifications = {
       setNotificationCategoryAsync: async () => {},
     AndroidImportance: { DEFAULT: 3, HIGH: 4 }, IosAuthorizationStatus: { PROVISIONAL: 3 },
     SchedulableTriggerInputTypes: { DATE: 'date' },
-    setNotificationChannelAsync: async () => {},
+    setNotificationChannelAsync: async (id, channel) => { channels.set(id, channel); },
+    getExactAlarmPermissionsAsync: async () => ({ granted: exact }),
     getPermissionsAsync: async () => ({ granted: permitted }),
     requestPermissionsAsync: async () => ({ granted: permitted }),
     getAllScheduledNotificationsAsync: async () => [...scheduled.values()],
@@ -28,8 +31,8 @@ function ambiente() {
     cancelScheduledNotificationAsync: async id => { scheduled.delete(id); },
   };
   const mocks = {
-    'expo-notifications': notifications, 'expo-constants': { default: { appOwnership: 'expo' } },
-    'react-native': { Platform: { OS: 'android' } },
+    'expo-notifications': notifications, 'expo-constants': { __esModule: true, default: { appOwnership: ownership } },
+    'react-native': { Platform: { OS: platform } },
     './sessaoLocal': { capturarSessaoLocal: () => session, validarSessaoLocal: s => { if (s.usuarioId !== user) throw Error('sessao'); } },
     './api': { ApiError: class extends Error {}, apiService: { confirmarLembrete: async () => { if (offline) throw Error('offline'); chamadas++; } } },
   };
@@ -44,8 +47,41 @@ function ambiente() {
     return cache[name] = module.exports;
   }
   const item = { id: 'local1', nome: 'Teste', username: '', dose: '23:59', intervalo: 8, frequencia: 7, inicio: load('./agenda').dataLocal(), serverId: 10, pendente: 0, nivelAviso: 'ALARME', dosagem: '1 comprimido' };
-  return { db, item, session, scheduled, load, deny: () => permitted = false, trocar: () => user = 2, offline: v => offline = v, chamadas: () => chamadas };
+  return { db, item, session, scheduled, channels, load, denyExact: () => exact = false, deny: () => permitted = false, trocar: () => user = 2, offline: v => offline = v, chamadas: () => chamadas };
 }
+test('Android: conteúdo curto, canal, agendamento exato e alerta de permissão', async () => {
+  for (const ownership of ['expo', 'standalone']) {
+    const a = ambiente('android', ownership); await preparar(a);
+    const service = a.load('./alarmes');
+    await service.atualizarAlarmes([a.item], false, a.session, a.db);
+    const n = [...a.scheduled.values()][0];
+    assert.equal(n.content.title, '⏰ Teste');
+    assert.equal(n.content.body, '1 comprimido · Hora de tomar Teste.');
+    assert.equal(n.content.data.usuarioId, 1);
+    assert.equal(n.content.data.id, a.item.id);
+    assert.equal(n.trigger.delivery, 'alarmClock');
+    const channel = a.channels.get(n.trigger.channelId);
+    assert.equal(channel.importance, 4); assert.equal(channel.enableVibrate, true);
+    assert.equal(channel.bypassDnd, false);
+    assert.equal(channel.sound, ownership === 'expo' ? 'default' : 'syncmed-alarme.wav');
+    a.denyExact();
+    await assert.rejects(service.atualizarAlarmes([a.item], false, a.session, a.db), /horário aproximado/);
+    assert.ok(a.scheduled.size > 0, 'Não perder avisos por falta de permissão exata');
+    a.item.nivelAviso = 'NOTIFICACAO';
+    await service.atualizarAlarmes([a.item], false, a.session, a.db);
+    const common = [...a.scheduled.values()][0];
+    assert.equal(common.content.title, '💊 Teste');
+    assert.equal(common.trigger.delivery, 'bestEffort');
+  }
+});
+test('iOS conserva conteúdo e não exige permissão Android', async () => {
+  const a = ambiente('ios'); await preparar(a); a.denyExact();
+  await a.load('./alarmes').atualizarAlarmes([a.item], false, a.session, a.db);
+  const n = [...a.scheduled.values()][0];
+  assert.equal(n.content.title, '⏰ Hora do medicamento!');
+  assert.equal(n.content.body, 'Está na hora de tomar seu medicamento: Teste — 1 comprimido.');
+  assert.equal(a.channels.size, 0);
+});
 async function preparar(a) {
   await a.load('./lembretes').inicializarBanco(a.db);
   await a.db.runAsync('INSERT INTO lembretes (id,nome,serverId) VALUES (?,?,?)', [a.item.id,a.item.nome,10]);

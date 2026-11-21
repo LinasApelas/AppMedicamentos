@@ -12,7 +12,7 @@ export interface Ocorrencia {
   realizada: string | null; sincronizada: number;
 }
 export const chaveDose = (id: string, prevista: number) => `${id}:${prevista}`;
-export const revisao = (item: Remedio) => JSON.stringify(['avisos-v2', item.nome, item.dosagem || '', item.nivelAviso || 'NOTIFICACAO', item.inicio, item.dose, item.intervalo, item.frequencia]);
+export const revisao = (item: Remedio) => JSON.stringify([Platform.OS === 'android' ? 'avisos-android-v3' : 'avisos-v2', item.nome, item.dosagem || '', item.nivelAviso || 'NOTIFICACAO', item.inicio, item.dose, item.intervalo, item.frequencia]);
 const somAlarme = Constants.appOwnership === 'expo' ? 'default' : 'syncmed-alarme.wav';
 let fila: Promise<void> = Promise.resolve();
 export function naFilaAlarmes(operacao: () => Promise<void>): Promise<void> {
@@ -72,8 +72,10 @@ export async function programarDose(item: Remedio, prevista: number, disparo: nu
   await Notifications.scheduleNotificationAsync({
     identifier: `syncmed:${sessao.usuarioId}:${chave}:${disparo}:${revisao(item)}`,
     content: {
-      title: alarme ? '⏰ Hora do medicamento!' : '💊 Hora do medicamento!',
-      body: `Está na hora de tomar seu medicamento: ${item.nome}${item.dosagem ? ' — ' + item.dosagem : ''}.`,
+      title: Platform.OS === 'android' ? `${alarme ? '⏰' : '💊'} ${item.nome}` : alarme ? '⏰ Hora do medicamento!' : '💊 Hora do medicamento!',
+      body: Platform.OS === 'android'
+        ? `${item.dosagem ? item.dosagem + ' · ' : ''}Hora de tomar ${item.nome}.`
+        : `Está na hora de tomar seu medicamento: ${item.nome}${item.dosagem ? ' — ' + item.dosagem : ''}.`,
       sound: alarme ? somAlarme : 'default',
       categoryIdentifier: alarme ? 'syncmed-alarme' : undefined,
       data: { syncmed: true, id: item.id, usuarioId: sessao.usuarioId, nivelAviso: item.nivelAviso || 'NOTIFICACAO', prevista, disparo, chave, revisao: revisao(item) },
@@ -143,5 +145,11 @@ export function atualizarAlarmes(items: Remedio[], pedirPermissao = false, sessa
       if (!existing.has(identifier(dose))) await programarDose(dose.item, dose.prevista, dose.disparo, sessao);
     }
     if (!permitido) throw new Error('Notificações não autorizadas. Ative-as nos ajustes do aparelho.');
+    if (Platform.OS === 'android' && wanted.some(dose => dose.item.nivelAviso === 'ALARME')) {
+      let exato;
+      try { exato = await Notifications.getExactAlarmPermissionsAsync(); }
+      catch { throw new Error('Avisos agendados, mas não foi possível verificar alarmes exatos. Confira Alarmes e lembretes nos ajustes do Android e teste em um APK atualizado.'); }
+      if (!exato.granted) throw new Error('Avisos agendados em horário aproximado. Para ALARME, permita Alarmes e lembretes nos ajustes do Android e reabra a agenda.');
+    }
   });
 }

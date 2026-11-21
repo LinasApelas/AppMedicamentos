@@ -19,7 +19,7 @@ export default function Lembretes() {
   const [remedios, setRemedios] = useState<Remedio[]>([]);
   const [confirmacoes, setConfirmacoes] = useState<{ chave: string; nome: string; realizada: string; sincronizada: number }[]>([]);
   const [loading, setLoading] = useState(false);
-  const [avisoAgendamento, setAvisoAgendamento] = useState(false);
+  const [avisoAgendamento, setAvisoAgendamento] = useState('');
   const [syncError, setSyncError] = useState(false);
   const [mostrarTodos, setMostrarTodos] = useState(false);
 
@@ -38,8 +38,8 @@ export default function Lembretes() {
       setRemedios(items);
       const historico = await db.getAllAsync<{ chave: string; nome: string; realizada: string; sincronizada: number }>("SELECT o.chave, l.nome, o.realizada, o.sincronizada FROM ocorrencias o JOIN lembretes l ON l.id=o.lembreteId WHERE o.estado='TOMADO' ORDER BY o.realizada DESC LIMIT 10");
       validarSessaoLocal(sessao); setConfirmacoes(historico);
-      try { await atualizarAlarmes(items, false, sessao, db); if (sessaoLocalAtual(sessao)) setAvisoAgendamento(false); }
-      catch { if (sessaoLocalAtual(sessao)) setAvisoAgendamento(true); }
+      try { await atualizarAlarmes(items, false, sessao, db); if (sessaoLocalAtual(sessao)) setAvisoAgendamento(''); }
+      catch (e) { if (sessaoLocalAtual(sessao)) setAvisoAgendamento(e instanceof Error ? e.message : 'Não foi possível atualizar os avisos. Confira as permissões e atualize a agenda.'); }
     } catch { if (sessaoLocalAtual(sessao)) Alert.alert('Erro', 'Não foi possível carregar os medicamentos.'); }
     finally { if (sessaoLocalAtual(sessao)) setLoading(false); }
   }, [db, sessao]);
@@ -76,7 +76,7 @@ export default function Lembretes() {
       <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: mostrarTodos }} style={[styles.tab, mostrarTodos && styles.selected]} onPress={() => setMostrarTodos(true)}><Text style={styles.tabText}>Todos ({remedios.length})</Text></TouchableOpacity>
     </View>
     <Text style={styles.section}>{mostrarTodos ? 'Medicamentos cadastrados' : `Programado para ${selectedDate.split('-').reverse().join('/')}`}</Text>
-    {avisoAgendamento && <Text style={styles.notice}>Não foi possível atualizar os avisos. Confira as permissões de notificação nos ajustes do aparelho e atualize a agenda.</Text>}
+    {!!avisoAgendamento && <Text accessibilityLiveRegion="polite" style={styles.notice}>{avisoAgendamento}</Text>}
     {syncError && <Text style={styles.notice}>Sem conexão com o servidor. Exibindo os dados salvos no aparelho.</Text>}
     {semAgenda > 0 && <Text style={styles.notice}>{semAgenda} cadastro(s) sem programação completa. Abra “Todos” e edite para definir os horários.</Text>}
     {lista.length === 0 && <View style={styles.card}><Text style={styles.text}>{loading ? 'Carregando…' : 'Nenhum medicamento programado para este dia.'}</Text></View>}
