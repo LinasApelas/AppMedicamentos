@@ -10,12 +10,14 @@ export function normalizarGeoapify(dados: unknown, origem: Coordenada, raio: Rai
   if (data?.type !== 'FeatureCollection' || !Array.isArray(data.features))
     throw new Error('Resposta inválida do serviço de farmácias.');
   const unicos = new Map<string, Farmacia>();
+  let registrosValidos = 0;
   for (const f of data.features) {
     const p = f?.properties, coords = f?.geometry?.coordinates;
     if (f?.geometry?.type !== 'Point' || !Array.isArray(coords) || typeof p?.place_id !== 'string'
       || !Array.isArray(p.categories) || !p.categories.some(c => c === CATEGORIA_FARMACIA || c === 'healthcare.pharmacy')) continue;
     const posicao = { latitude: coords[1], longitude: coords[0] };
     if (!coordenadaValida(posicao)) continue;
+    registrosValidos++;
     const distancia = distanciaMetros(origem, posicao);
     if (distancia > raio * 1000) continue;
     const id = `geoapify:${p.place_id}`;
@@ -24,6 +26,8 @@ export function normalizarGeoapify(dados: unknown, origem: Coordenada, raio: Rai
       endereco: typeof p.formatted === 'string' && p.formatted.trim() ? p.formatted
         : typeof p.address_line2 === 'string' ? p.address_line2 : 'Endereço não informado' });
   }
+  if (data.features.length && !registrosValidos)
+    throw new Error('Resposta sem registros válidos de farmácias.');
   return [...unicos.values()].sort((a, b) => a.distancia - b.distancia);
 }
 

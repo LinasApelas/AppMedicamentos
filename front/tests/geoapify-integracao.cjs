@@ -30,6 +30,9 @@ test('Geoapify normaliza, deduplica, ordena e filtra 2/5/10 km', () => {
   assert.equal(item.id, 'geoapify:a'); assert.equal(item.latitude, 0); assert.equal(item.longitude, 0.01);
   assert.equal(item.endereco, 'Endereço de teste'); assert.ok(item.distancia > 1100 && item.distancia < 1120);
   assert.throws(() => normalizar({}, origin, 2), /inválida/);
+  assert.throws(() => normalizar(collection([feature('bad', 999), null]), origin, 2), /sem registros válidos/);
+  assert.equal(normalizar(collection([]), origin, 2).length, 0);
+  assert.equal(normalizar(collection([feature('fora', 0.07)]), origin, 2).length, 0);
 });
 
 test('Geoapify principal, paginação sequencial e vazio não aciona Overpass', async () => {
@@ -48,10 +51,11 @@ test('Geoapify principal, paginação sequencial e vazio não aciona Overpass', 
 });
 
 test('Geoapify: fallback em rede/5xx/JSON; 401/403/429 não contornam restrições', async () => {
-  for (const status of [408, 502, 503, 504, 'network', 'json']) {
+  for (const status of [408, 502, 503, 504, 'network', 'json', 'malformed']) {
     let fallback = 0;
     const search = service({ fetch: async () => {
       if (status === 'network') throw Error('network');
+      if (status === 'malformed') return success([feature('bad', 999)]);
       if (status === 'json') return { ok: true, json: async () => { throw Error('json'); } };
       return { ok: false, status };
     } }).criarBuscaGeoapify('fixture', async () => { fallback++; return []; });
