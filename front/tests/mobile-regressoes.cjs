@@ -27,9 +27,15 @@ test('confirmação usa o endereço completo configurado da API',async()=>{
 test('API configurável para iPhone, Android e navegador',()=>{
  const config=(platform,host,env,window)=>load('config',{'expo-constants':{default:{expoConfig:{hostUri:host}}},'react-native':{Platform:{OS:platform}}},{process:{env:{EXPO_PUBLIC_API_URL:env}},window}).API_CONFIG.BASE_URL;
  assert.equal(config('ios','192.0.2.1:8081','http://api.test:8085/'),'http://api.test:8085');
- assert.equal(config('ios','192.0.2.1:8081'),'http://192.0.2.1:8080');
- assert.equal(config('android',undefined),'http://10.0.2.2:8080');
- assert.equal(config('web',undefined,undefined,{location:{hostname:'localhost'}}),'http://localhost:8080');
+ for (const platform of ['ios','android']) {
+  assert.equal(config(platform,'192.0.2.1:8081'),'http://192.0.2.1:8086');
+  assert.equal(config(platform,'192.0.2.2:8082',''),'http://192.0.2.2:8086');
+  assert.equal(config(platform,'192.0.2.2:8082','https://api.test:8443/'),'https://api.test:8443');
+ }
+ assert.equal(config('android',undefined),'http://10.0.2.2:8086');
+ assert.equal(config('ios',undefined),'http://localhost:8086');
+ assert.equal(config('web',undefined,undefined,{location:{hostname:'localhost'}}),'http://localhost:8086');
+ assert.equal(config('web',undefined,'https://api.test/',{location:{hostname:'localhost'}}),'https://api.test');
 });
 
 test('módulo nativo ausente mantém som da notificação e não importa áudio',async()=>{

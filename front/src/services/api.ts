@@ -21,6 +21,18 @@ export class ApiError extends Error {
   }
 }
 
+export function mensagemErroLogin(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 401) return 'E-mail ou senha incorretos.';
+    if (error.status >= 500) return 'O servidor está indisponível no momento. Tente novamente mais tarde.';
+    return error.message;
+  }
+  const detalhe = error instanceof Error ? `${error.name} ${error.message}` : '';
+  if (/abort|timeout|timed out/i.test(detalhe))
+    return 'O servidor demorou para responder. Confira se o backend está ativo e se o endereço da API e a rede estão corretos.';
+  return 'Não foi possível conectar ao servidor. Confira a conexão, o endereço da API e se o backend está ativo.';
+}
+
 export interface FetchOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   body?: any;
@@ -158,8 +170,14 @@ class ApiService {
         body: credentials,
       }, true);
       // Confirma que o cliente devolve o cookie e que o servidor reconhece a sessão.
-      const confirmado = await this.request<UsuarioAutenticado>(API_CONFIG.ENDPOINTS.SESSAO, {}, true);
-      if (confirmado.id !== usuario.id) throw new ApiError(401, 'Não foi possível confirmar a sessão.');
+      let confirmado: UsuarioAutenticado;
+      try { confirmado = await this.request<UsuarioAutenticado>(API_CONFIG.ENDPOINTS.SESSAO, {}, true); }
+      catch (error) {
+        if (error instanceof ApiError && error.status === 401)
+          throw new ApiError(409, 'O login foi aceito, mas a sessão não foi mantida. Confira os cookies e o endereço do servidor.');
+        throw error;
+      }
+      if (confirmado.id !== usuario.id) throw new ApiError(409, 'Não foi possível confirmar a sessão da conta solicitada.');
       this.setUser(confirmado);
       return confirmado;
     });

@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { useAuth } from '../contexts/AuthContext';
+import { mensagemErroLogin } from '../services/api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -28,14 +29,8 @@ export default function Login() {
       const usuarioLogado = await login(email, senha);
       Alert.alert('Sucesso', `Bem-vindo, ${usuarioLogado.nome}!`);
       router.replace('/(tabs)/Lembretes');
-    } catch (error: any) {
-      const errorMessage = error?.message || 'Ocorreu um erro ao fazer login.';
-      if (errorMessage.includes('401')) {
-        Alert.alert('Erro', 'E-mail ou senha incorretos.');
-      } else {
-        Alert.alert('Erro', errorMessage);
-      }
-      console.error('Erro na requisição:', error);
+    } catch (error) {
+      Alert.alert('Erro', mensagemErroLogin(error));
     } finally {
       setLoading(false);
     }
