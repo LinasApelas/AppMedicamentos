@@ -6,10 +6,10 @@ import { useFonts } from 'expo-font';
 import { selectionAsync } from 'expo-haptics';
 import { useReducedMotion } from './Motion';
 
-const items: Record<string, { label: string; icon: keyof typeof MaterialIcons.glyphMap; activeIcon: keyof typeof MaterialIcons.glyphMap }> = {
-  Lembretes: { label: 'Lembretes', icon: 'notifications-none', activeIcon: 'notifications' },
-  Adicionar: { label: 'Adicionar', icon: 'add', activeIcon: 'add' },
-  Farmacias: { label: 'Farmácias', icon: 'location-on', activeIcon: 'local-pharmacy' },
+const items: Record<string, { label: string; icon: keyof typeof MaterialIcons.glyphMap }> = {
+  Lembretes: { label: 'Lembretes', icon: 'notifications-none' },
+  Adicionar: { label: 'Adicionar', icon: 'add' },
+  Farmacias: { label: 'Farmácias', icon: 'location-on' },
 };
 
 interface ItemProps {
@@ -24,10 +24,9 @@ interface ItemProps {
 }
 
 function TabItem({ name, focused, reduced, fontsReady, onPress, onLongPress, accessibilityLabel, testID }: ItemProps) {
-  const item = items[name] ?? { label: name, icon: 'circle' as const, activeIcon: 'circle' as const };
+  const item = items[name] ?? { label: name, icon: 'circle' as const };
 
   const [selection] = useState(() => new Animated.Value(focused ? 1 : 0));
-  const [press] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     if (reduced) { selection.setValue(focused ? 1 : 0); return; }
@@ -36,30 +35,20 @@ function TabItem({ name, focused, reduced, fontsReady, onPress, onLongPress, acc
     return () => animation.stop();
   }, [focused, reduced, selection]);
 
-  const pressTo = (value: number) => {
-    Animated.spring(press, { toValue: reduced ? 1 : value, speed: 35, bounciness: 5, useNativeDriver: true }).start();
-  };
-
   return (
     <Pressable style={styles.touchTarget} onPress={onPress} onLongPress={onLongPress}
-      onPressIn={() => pressTo(0.9)} onPressOut={() => pressTo(1)}
       accessibilityRole="tab" accessibilityState={{ selected: focused }}
       accessibilityLabel={accessibilityLabel ?? item.label} testID={testID}>
-      <Animated.View pointerEvents="none" style={[styles.item, { transform: [{ scale: press }] }]}>
-        <Animated.View style={[styles.icon, {
-          transform: [{ translateY: selection.interpolate({ inputRange: [0, 1], outputRange: [0, -26] }) }],
-        }]}>
+      <View pointerEvents="none" style={styles.item}>
+        <View style={styles.icon}>
           <Animated.View style={[styles.halo, { opacity: selection }]} />
-          <Animated.View style={[styles.bubble, { opacity: selection,
-            transform: [{ scale: selection.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }],
-          }]} />
-          {fontsReady ? <MaterialIcons style={styles.glyph} name={focused ? item.activeIcon : item.icon} size={28}
+          <Animated.View style={[styles.bubble, { opacity: selection }]} />
+          {fontsReady ? <MaterialIcons style={styles.glyph} name={item.icon} size={28}
             color={focused ? '#12323A' : '#808080'} /> :
             <Text style={styles.fallback}>{name === 'Adicionar' ? '+' : name === 'Farmacias' ? 'F' : 'L'}</Text>}
-        </Animated.View>
-        <Animated.Text style={[styles.label, focused && styles.labelSelected,
-          { transform: [{ translateY: selection.interpolate({ inputRange: [0, 1], outputRange: [0, -8] }) }] }]}>{item.label}</Animated.Text>
-      </Animated.View>
+        </View>
+        <Text style={[styles.label, focused && styles.labelSelected]}>{item.label}</Text>
+      </View>
     </Pressable>
   );
 }
@@ -115,8 +104,8 @@ const styles = StyleSheet.create({
   item: { width: '100%', alignItems: 'center', justifyContent: 'center', gap: 2 },
   icon: { width: 52, height: 44, alignItems: 'center', justifyContent: 'center' },
   glyph: { zIndex: 2, elevation: 5 },
-  halo: { position: 'absolute', width: 76, height: 76, borderRadius: 38, backgroundColor: '#ffffff' },
-  bubble: { position: 'absolute', width: 58, height: 58, borderRadius: 29,
+  halo: { position: 'absolute', width: 52, height: 52, borderRadius: 26, backgroundColor: '#ffffff' },
+  bubble: { position: 'absolute', width: 44, height: 44, borderRadius: 22,
     backgroundColor: '#9DD7E2', borderWidth: 1, borderColor: '#E2F1F8',
     shadowColor: '#12323A', shadowOpacity: 0.18, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
   label: { color: '#808080', fontSize: 11, lineHeight: 16, includeFontPadding: false, fontWeight: '600', textAlign: 'center', paddingHorizontal: 2 },
